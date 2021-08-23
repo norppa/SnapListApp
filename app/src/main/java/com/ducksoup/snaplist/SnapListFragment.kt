@@ -5,6 +5,7 @@ import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Button
 import androidx.navigation.findNavController
 
 class SnapListFragment : Fragment() {
@@ -24,5 +25,12 @@ class SnapListFragment : Fragment() {
         token = Token(requireActivity())
         if (token.get().isNullOrEmpty())
             return view.findNavController().navigate(R.id.loginFragment)
+
+        view.findViewById<Button>(R.id.button).setOnClickListener { logout(it) }
+    }
+
+    private fun logout(view: View) {
+        token.set(null)
+        view.findNavController().navigate(R.id.loginFragment)
     }
 }
