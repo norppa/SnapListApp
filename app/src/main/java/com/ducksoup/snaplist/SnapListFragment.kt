@@ -7,12 +7,12 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.Button
 import androidx.navigation.findNavController
-import androidx.recyclerview.widget.LinearLayoutManager
-import androidx.recyclerview.widget.RecyclerView
+import androidx.viewpager2.widget.ViewPager2
+import com.google.android.material.tabs.TabLayout
+import com.google.android.material.tabs.TabLayoutMediator
 
 class SnapListFragment : Fragment() {
 
-    private lateinit var token: Token
     private lateinit var api: API
     private lateinit var store: Store
 
@@ -26,37 +26,31 @@ class SnapListFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        token = Token(requireActivity())
-        if (token.get().isNullOrEmpty())
+        store = Store()
+        val token = store.getToken(requireActivity())
+        if (token.isNullOrEmpty())
             return view.findNavController().navigate(R.id.loginFragment)
 
-        val list = view.findViewById<RecyclerView>(R.id.sList)
-        list.layoutManager = LinearLayoutManager(context)
+
+        val viewPager = view.findViewById<ViewPager2>(R.id.view_pager)
+        val tabLayout = view.findViewById<TabLayout>(R.id.tab_layout)
 
         api = API(view)
-        store = Store()
         api.getLists(token) { lists: List<Store.List> ->
             run {
                 store.setLists(lists)
-                if (lists.isNotEmpty()) {
-                    val firstListId = lists[0].id
-                    api.getItems(firstListId, token) { items ->
-                        run {
-                            store.setItems(firstListId, items)
-                            list.adapter = ListAdapter(items)
-                        }
-                    }
-                }
+                viewPager.adapter = PageAdapter(lists,this)
+                TabLayoutMediator(tabLayout, viewPager) { tab, position ->
+                    tab.text = lists[position].name
+                }.attach()
             }
         }
-
-
 
         view.findViewById<Button>(R.id.button).setOnClickListener { logout(it) }
     }
 
     private fun logout(view: View) {
-        token.set(null)
+        store.setToken(null, requireActivity())
         view.findNavController().navigate(R.id.loginFragment)
     }
 }

@@ -21,7 +21,7 @@ class API(view: View) {
         queue.add(loginRequest)
     }
 
-    fun getLists(token: Token, callback: (lists: List<Store.List>) -> Unit) {
+    fun getLists(token: String, callback: (lists: List<Store.List>) -> Unit) {
         val body = JSONObject(mapOf("action" to "getLists"))
 
         fun resultToList(jsonObject: JSONObject): List<Store.List> {
@@ -43,14 +43,14 @@ class API(view: View) {
             override fun getHeaders(): Map<String, String> {
                 val headers = HashMap<String, String>()
                 headers["Content-Type"] = "application/json"
-                headers["Authorization"] = "Bearer ${token.get()}"
+                headers["Authorization"] = "Bearer $token"
                 return headers
             }
         }
         queue.add(request)
     }
 
-    fun getItems(listId: Int, token: Token, callback: (lists: List<Store.Item>) -> Unit) {
+    fun getItems(listId: Int, token: String, callback: (lists: List<Store.Item>) -> Unit) {
         val body = JSONObject(mapOf("action" to "getItems", "listId" to listId))
 
         fun resultToList(jsonObject: JSONObject): List<Store.Item> {
@@ -73,7 +73,7 @@ class API(view: View) {
             override fun getHeaders(): Map<String, String> {
                 val headers = HashMap<String, String>()
                 headers["Content-Type"] = "application/json"
-                headers["Authorization"] = "Bearer ${token.get()}"
+                headers["Authorization"] = "Bearer $token"
                 return headers
             }
         }
