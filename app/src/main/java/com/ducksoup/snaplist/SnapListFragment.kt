@@ -1,10 +1,8 @@
 package com.ducksoup.snaplist
 
 import android.os.Bundle
+import android.view.*
 import androidx.fragment.app.Fragment
-import android.view.LayoutInflater
-import android.view.View
-import android.view.ViewGroup
 import android.widget.Button
 import androidx.navigation.findNavController
 import androidx.viewpager2.widget.ViewPager2
@@ -21,7 +19,22 @@ class SnapListFragment : Fragment() {
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
+
+        setHasOptionsMenu(true)
         return inflater.inflate(R.layout.fragment_snap_list, container, false)
+    }
+    override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
+        inflater.inflate(R.menu.menu, menu)
+    }
+
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        return when (item.itemId) {
+            R.id.menu_logout -> {
+                logout(requireView())
+                true
+            }
+            else -> super.onOptionsItemSelected(item)
+        }
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
@@ -46,7 +59,6 @@ class SnapListFragment : Fragment() {
             }
         }
 
-        view.findViewById<Button>(R.id.button).setOnClickListener { logout(it) }
     }
 
     private fun logout(view: View) {
