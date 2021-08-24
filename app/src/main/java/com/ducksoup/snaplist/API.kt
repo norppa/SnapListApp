@@ -12,16 +12,72 @@ class API(view: View) {
     private val url = "https://jtthaavi.kapsi.fi/subrosa/snaplist"
 
     fun login(username: String, password: String, callback: (token: String) -> Unit) {
-        println("LOGIN REQUEST")
         val body = JSONObject("""{"username":"$username", "password": "$password" }""")
-        println(body)
         val loginRequest = JsonObjectRequest(
             Request.Method.POST, "$url/users/login", body,
-            { callback(it.getString("token"))},
+            { callback(it.getString("token")) },
             { printError(it) }
         )
-        println(loginRequest)
         queue.add(loginRequest)
+    }
+
+    fun getLists(token: Token, callback: (lists: List<Store.List>) -> Unit) {
+        val body = JSONObject(mapOf("action" to "getLists"))
+
+        fun resultToList(jsonObject: JSONObject): List<Store.List> {
+            val jsonArray = jsonObject.getJSONArray("lists")
+            val lists = mutableListOf<Store.List>()
+            for (i in 0 until jsonArray.length()) {
+                val o = jsonArray.getJSONObject(i)
+                val list = Store.List(o.getInt("id"), o.getString("name"))
+                lists.add(list)
+            }
+            return lists
+        }
+
+        val request = object : JsonObjectRequest(
+            Method.POST, url, body,
+            { callback(resultToList(it)) },
+            { println("Error: $it") }
+        ) {
+            override fun getHeaders(): Map<String, String> {
+                val headers = HashMap<String, String>()
+                headers["Content-Type"] = "application/json"
+                headers["Authorization"] = "Bearer ${token.get()}"
+                return headers
+            }
+        }
+        queue.add(request)
+    }
+
+    fun getItems(listId: Int, token: Token, callback: (lists: List<Store.Item>) -> Unit) {
+        val body = JSONObject(mapOf("action" to "getItems", "listId" to listId))
+
+        fun resultToList(jsonObject: JSONObject): List<Store.Item> {
+            val jsonArray = jsonObject.getJSONArray("items")
+            val items = mutableListOf<Store.Item>()
+            for (i in 0 until jsonArray.length()) {
+                val o = jsonArray.getJSONObject(i)
+                val i = Store.Item(o.getInt("id"), o.getString("item"), o.getInt("checked") != 0)
+                items.add(i)
+            }
+            return items
+        }
+
+
+        val request = object : JsonObjectRequest(
+            Method.POST, url, body,
+            { callback(resultToList(it)) },
+            { println("Error: $it") }
+        ) {
+            override fun getHeaders(): Map<String, String> {
+                val headers = HashMap<String, String>()
+                headers["Content-Type"] = "application/json"
+                headers["Authorization"] = "Bearer ${token.get()}"
+                return headers
+            }
+        }
+        queue.add(request)
     }
 
     private fun printError(error: VolleyError) {
