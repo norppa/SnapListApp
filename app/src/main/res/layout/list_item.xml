@@ -9,6 +9,12 @@
         android:id="@+id/list_item_label"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="List Item Placeholder" />
+        android:fontFamily="@font/arbutus_slab"
+        android:text="List Item Placeholder"
+        android:textColor="@color/black"
+        android:textSize="20sp"
+        android:background="@drawable/left_border"
+        android:paddingLeft="10dp"
+        android:paddingVertical="2dp"/>
 
 </LinearLayout>
