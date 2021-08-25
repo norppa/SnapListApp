@@ -12,7 +12,6 @@ import com.google.android.material.tabs.TabLayoutMediator
 class SnapListFragment : Fragment() {
 
     private lateinit var api: API
-    private lateinit var store: Store
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -39,8 +38,7 @@ class SnapListFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        store = Store()
-        val token = store.getToken(requireActivity())
+        val token = Token.getToken(requireActivity())
         if (token.isNullOrEmpty())
             return view.findNavController().navigate(R.id.loginFragment)
 
@@ -51,7 +49,7 @@ class SnapListFragment : Fragment() {
         api = API(view)
         api.getLists(token) { lists: List<Store.List> ->
             run {
-                store.setLists(lists)
+                Store.setLists(lists)
                 viewPager.adapter = PageAdapter(lists,this)
                 TabLayoutMediator(tabLayout, viewPager) { tab, position ->
                     tab.text = lists[position].name
@@ -62,7 +60,7 @@ class SnapListFragment : Fragment() {
     }
 
     private fun logout(view: View) {
-        store.setToken(null, requireActivity())
+        Token.setToken(null, requireActivity())
         view.findNavController().navigate(R.id.loginFragment)
     }
 }

@@ -58,8 +58,7 @@ class API(view: View) {
             val items = mutableListOf<Store.Item>()
             for (i in 0 until jsonArray.length()) {
                 val o = jsonArray.getJSONObject(i)
-                val i = Store.Item(o.getInt("id"), o.getString("item"), o.getInt("checked") != 0)
-                items.add(i)
+                items.add(Store.Item(o.getInt("id"), o.getString("item"), o.getInt("checked") != 0))
             }
             return items
         }

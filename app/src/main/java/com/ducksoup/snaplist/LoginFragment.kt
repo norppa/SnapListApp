@@ -35,8 +35,7 @@ class LoginFragment : Fragment() {
         val username = view.findViewById<EditText>(R.id.username).text.toString()
         val password = view.findViewById<EditText>(R.id.password).text.toString()
         fun callback(token: String) {
-            println("SUCCESS CALLBACK")
-            Token(requireActivity()).set(token)
+            Token.setToken(token, requireActivity())
             view.findNavController().navigate(R.id.snapListFragment)
         }
         api.login(username, password, ::callback)

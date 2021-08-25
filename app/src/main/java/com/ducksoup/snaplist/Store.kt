@@ -1,9 +1,8 @@
 package com.ducksoup.snaplist
 
-import androidx.appcompat.app.AppCompatActivity
-import androidx.fragment.app.FragmentActivity
+import java.lang.IndexOutOfBoundsException
 
-class Store {
+object Store {
     private val lists = mutableMapOf<Int, List>()
     private val items = mutableMapOf<Int, kotlin.collections.List<Item>>()
 
@@ -16,19 +15,13 @@ class Store {
         this.items[listId] = items
     }
 
-    fun getToken(activity: FragmentActivity): String {
-        return activity.getPreferences(AppCompatActivity.MODE_PRIVATE).getString(Keys.token, null)
-            ?: ""
+    fun getItems(listId: Int):kotlin.collections.List<Item> {
+        return items[listId] ?: throw IndexOutOfBoundsException()
     }
 
-    fun setToken(token: String?, activity: FragmentActivity) {
-        val editor = activity.getPreferences(AppCompatActivity.MODE_PRIVATE).edit()
-        if (token.isNullOrEmpty()) {
-            editor.remove(Keys.token)
-        } else {
-            editor.putString(Keys.token, token)
-        }
-        editor.apply()
+    fun setChecked(value: Boolean, listId: Int, itemId: Int) {
+        val item = items[listId]?.find { it.id == itemId } ?: throw IndexOutOfBoundsException("List ID or Item ID is invalid")
+        item.checked = value
     }
 
     override fun toString(): String {
@@ -36,10 +29,6 @@ class Store {
     }
 
     data class List(val id: Int, val name: String)
-    data class Item(val id: Int, val label: String, val checked: Boolean)
-
-    object Keys {
-        const val token = "@SnapListToken"
-    }
+    data class Item(val id: Int, val label: String, var checked: Boolean)
 }
 
