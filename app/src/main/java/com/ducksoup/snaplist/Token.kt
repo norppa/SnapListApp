@@ -19,6 +19,10 @@ object Token {
         }
     }
 
+    fun getToken(): String {
+        return token as String
+    }
+
     fun setToken(token: String?, activity: FragmentActivity) {
         val editor = activity.getPreferences(AppCompatActivity.MODE_PRIVATE).edit()
         if (token.isNullOrEmpty()) {

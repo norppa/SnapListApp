@@ -3,15 +3,12 @@ package com.ducksoup.snaplist
 import android.os.Bundle
 import android.view.*
 import androidx.fragment.app.Fragment
-import android.widget.Button
 import androidx.navigation.findNavController
 import androidx.viewpager2.widget.ViewPager2
 import com.google.android.material.tabs.TabLayout
 import com.google.android.material.tabs.TabLayoutMediator
 
 class SnapListFragment : Fragment() {
-
-    private lateinit var api: API
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -39,15 +36,14 @@ class SnapListFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         val token = Token.getToken(requireActivity())
-        if (token.isNullOrEmpty())
+        if (token.isEmpty())
             return view.findNavController().navigate(R.id.loginFragment)
 
 
         val viewPager = view.findViewById<ViewPager2>(R.id.view_pager)
         val tabLayout = view.findViewById<TabLayout>(R.id.tab_layout)
 
-        api = API(view)
-        api.getLists(token) { lists: List<Store.List> ->
+        API.getLists { lists: List<Store.List> ->
             run {
                 Store.setLists(lists)
                 viewPager.adapter = PageAdapter(lists,this)

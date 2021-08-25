@@ -19,9 +19,13 @@ object Store {
         return items[listId] ?: throw IndexOutOfBoundsException()
     }
 
-    fun setChecked(value: Boolean, listId: Int, itemId: Int) {
-        val item = items[listId]?.find { it.id == itemId } ?: throw IndexOutOfBoundsException("List ID or Item ID is invalid")
-        item.checked = value
+    fun setChecked(value: Boolean, listId: Int, itemId: Int, callback: () -> Unit) {
+        API.setChecked(value, itemId) {
+            println("SUCCESS CALLBACK $it")
+            items[listId]?.find { it.id == itemId }?.checked = value
+            callback()
+        }
+
     }
 
     override fun toString(): String {

@@ -2,14 +2,19 @@ package com.ducksoup.snaplist
 
 import android.view.View
 import com.android.volley.Request
+import com.android.volley.RequestQueue
 import com.android.volley.VolleyError
 import com.android.volley.toolbox.JsonObjectRequest
 import com.android.volley.toolbox.Volley
 import org.json.JSONObject
 
-class API(view: View) {
-    private val queue = Volley.newRequestQueue(view.context)
-    private val url = "https://jtthaavi.kapsi.fi/subrosa/snaplist"
+object API {
+    private lateinit var queue: RequestQueue
+    private const val url = "https://jtthaavi.kapsi.fi/subrosa/snaplist"
+
+    fun init(view: View) {
+        queue = Volley.newRequestQueue(view.context)
+    }
 
     fun login(username: String, password: String, callback: (token: String) -> Unit) {
         val body = JSONObject("""{"username":"$username", "password": "$password" }""")
@@ -21,7 +26,7 @@ class API(view: View) {
         queue.add(loginRequest)
     }
 
-    fun getLists(token: String, callback: (lists: List<Store.List>) -> Unit) {
+    fun getLists(callback: (lists: List<Store.List>) -> Unit) {
         val body = JSONObject(mapOf("action" to "getLists"))
 
         fun resultToList(jsonObject: JSONObject): List<Store.List> {
@@ -34,23 +39,10 @@ class API(view: View) {
             }
             return lists
         }
-
-        val request = object : JsonObjectRequest(
-            Method.POST, url, body,
-            { callback(resultToList(it)) },
-            { println("Error: $it") }
-        ) {
-            override fun getHeaders(): Map<String, String> {
-                val headers = HashMap<String, String>()
-                headers["Content-Type"] = "application/json"
-                headers["Authorization"] = "Bearer $token"
-                return headers
-            }
-        }
-        queue.add(request)
+        queue.add(request(body, ::resultToList) { callback(it)})
     }
 
-    fun getItems(listId: Int, token: String, callback: (lists: List<Store.Item>) -> Unit) {
+    fun getItems(listId: Int, callback: (lists: List<Store.Item>) -> Unit) {
         val body = JSONObject(mapOf("action" to "getItems", "listId" to listId))
 
         fun resultToList(jsonObject: JSONObject): List<Store.Item> {
@@ -63,20 +55,35 @@ class API(view: View) {
             return items
         }
 
+        queue.add(request(body, ::resultToList) { callback(it) })
+    }
 
-        val request = object : JsonObjectRequest(
+    fun setChecked(value: Boolean, itemId: Int, callback: (jsonObject: JSONObject) -> Unit) {
+        val body =
+            JSONObject(mapOf("action" to "setItemCheck", "itemId" to itemId, "value" to value))
+
+        queue.add(request(body, { it }) { callback(it) })
+    }
+
+    private fun <T> request(
+        body: JSONObject,
+        responseParser: (JSONObject) -> T,
+        callback: (T) -> Unit
+    ): JsonObjectRequest {
+        return object : JsonObjectRequest(
             Method.POST, url, body,
-            { callback(resultToList(it)) },
-            { println("Error: $it") }
+            { callback(responseParser(it)) },
+            { printError(it) }
         ) {
-            override fun getHeaders(): Map<String, String> {
-                val headers = HashMap<String, String>()
-                headers["Content-Type"] = "application/json"
-                headers["Authorization"] = "Bearer $token"
-                return headers
-            }
+            override fun getHeaders(): Map<String, String> = generateHeaders()
         }
-        queue.add(request)
+    }
+
+    private fun generateHeaders(): Map<String, String> {
+        val headers = HashMap<String, String>()
+        headers["Content-Type"] = "application/json"
+        headers["Authorization"] = "Bearer ${Token.getToken()}"
+        return headers
     }
 
     private fun printError(error: VolleyError) {

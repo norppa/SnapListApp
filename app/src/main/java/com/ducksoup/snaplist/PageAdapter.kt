@@ -31,8 +31,7 @@ class PageFragment(private val list: Store.List) : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         val recyclerView = view.findViewById<RecyclerView>(R.id.sList)
         recyclerView.layoutManager = LinearLayoutManager(context)
-        val token = Token.getToken(requireActivity())
-        API(view).getItems(list.id, token) {
+        API.getItems(list.id) {
             Store.setItems(list.id, it)
             recyclerView.adapter = ListAdapter(list.id)
         }

@@ -12,13 +12,11 @@ class ListAdapter(private val listId: Int) :
     RecyclerView.Adapter<ListAdapter.ViewHolder>() {
     inner class ViewHolder(view: View) : RecyclerView.ViewHolder(view) {
         val label: TextView = view.findViewById(R.id.list_item_label)
-
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
         val view = LayoutInflater.from(parent.context).inflate(R.layout.list_item, parent, false)
         return ViewHolder(view)
-
     }
 
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
@@ -28,10 +26,13 @@ class ListAdapter(private val listId: Int) :
         holder.label.setTextColor(Color.parseColor(textColor))
 
         holder.label.setOnClickListener {
-            Store.setChecked(!item.checked, listId, item.id)
-            this.notifyDataSetChanged()
+            Store.setChecked(!item.checked, listId, item.id) {
+                this.notifyDataSetChanged()
+            }
         }
     }
 
-    override fun getItemCount() = Store.getItems(listId).size
+    override fun getItemCount(): Int {
+        return Store.getItems(listId).size
+    }
 }

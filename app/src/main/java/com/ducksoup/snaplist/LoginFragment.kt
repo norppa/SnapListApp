@@ -12,9 +12,6 @@ import android.widget.EditText
 import androidx.navigation.findNavController
 
 class LoginFragment : Fragment() {
-
-    private lateinit var api: API
-
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
@@ -25,10 +22,7 @@ class LoginFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        api = API(view)
-
         view.findViewById<Button>(R.id.login).setOnClickListener { login(view) }
-
     }
 
     private fun login(view: View) {
@@ -38,14 +32,10 @@ class LoginFragment : Fragment() {
             Token.setToken(token, requireActivity())
             view.findNavController().navigate(R.id.snapListFragment)
         }
-        api.login(username, password, ::callback)
+        API.login(username, password, ::callback)
 
         // Hide the keyboard.
         (activity?.getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager)
             .hideSoftInputFromWindow(view.windowToken, 0)
-    }
-
-    fun test(token: String) {
-        println(token)
     }
 }
