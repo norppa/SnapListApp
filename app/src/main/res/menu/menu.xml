@@ -5,6 +5,10 @@
 
 
     <group android:id="@+id/menu_group">
+        <item android:id="@+id/menu_delete_checked"
+            android:title="Delete checked items" />
+        <item android:id="@+id/menu_delete_all"
+            android:title="Delete all items" />
         <item android:id="@+id/menu_logout"
             android:title="Logout" />
     </group>

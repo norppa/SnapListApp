@@ -5,11 +5,9 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
-import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.RecyclerView
 
-class ListAdapter(private val listId: Int) :
-    RecyclerView.Adapter<ListAdapter.ViewHolder>() {
+class ListAdapter : RecyclerView.Adapter<ListAdapter.ViewHolder>() {
     inner class ViewHolder(view: View) : RecyclerView.ViewHolder(view) {
         val label: TextView = view.findViewById(R.id.list_item_label)
     }
@@ -20,19 +18,19 @@ class ListAdapter(private val listId: Int) :
     }
 
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
-        val item = Store.getItems(listId)[position]
+        val item = Store.getItems()[position]
         holder.label.text = item.label
         val textColor = if (item.checked) "#606060" else "#000000"
         holder.label.setTextColor(Color.parseColor(textColor))
 
         holder.label.setOnClickListener {
-            Store.setChecked(!item.checked, listId, item.id) {
+            Store.toggleChecked(item.id) {
                 this.notifyDataSetChanged()
             }
         }
     }
 
     override fun getItemCount(): Int {
-        return Store.getItems(listId).size
+        return Store.getItems().size
     }
 }

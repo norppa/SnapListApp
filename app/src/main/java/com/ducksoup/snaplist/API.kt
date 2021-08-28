@@ -26,31 +26,37 @@ object API {
         queue.add(loginRequest)
     }
 
-    fun getLists(callback: (lists: List<Store.List>) -> Unit) {
+    fun getLists(callback: (lists: List<StoreList>) -> Unit) {
         val body = JSONObject(mapOf("action" to "getLists"))
 
-        fun resultToList(jsonObject: JSONObject): List<Store.List> {
+        fun resultToList(jsonObject: JSONObject): List<StoreList> {
             val jsonArray = jsonObject.getJSONArray("lists")
-            val lists = mutableListOf<Store.List>()
+            val lists = mutableListOf<StoreList>()
             for (i in 0 until jsonArray.length()) {
                 val o = jsonArray.getJSONObject(i)
-                val list = Store.List(o.getInt("id"), o.getString("name"))
+                val list = StoreList(o.getInt("id"), o.getString("name"))
                 lists.add(list)
             }
             return lists
         }
-        queue.add(request(body, ::resultToList) { callback(it)})
+        queue.add(request(body, ::resultToList) { callback(it) })
     }
 
-    fun getItems(listId: Int, callback: (lists: List<Store.Item>) -> Unit) {
+    fun getItems(listId: Int, callback: (lists: List<StoreListItem>) -> Unit) {
         val body = JSONObject(mapOf("action" to "getItems", "listId" to listId))
 
-        fun resultToList(jsonObject: JSONObject): List<Store.Item> {
+        fun resultToList(jsonObject: JSONObject): List<StoreListItem> {
             val jsonArray = jsonObject.getJSONArray("items")
-            val items = mutableListOf<Store.Item>()
+            val items = mutableListOf<StoreListItem>()
             for (i in 0 until jsonArray.length()) {
                 val o = jsonArray.getJSONObject(i)
-                items.add(Store.Item(o.getInt("id"), o.getString("item"), o.getInt("checked") != 0))
+                items.add(
+                    StoreListItem(
+                        o.getInt("id"),
+                        o.getString("item"),
+                        o.getInt("checked") != 0
+                    )
+                )
             }
             return items
         }
@@ -65,6 +71,26 @@ object API {
         queue.add(request(body, { it }) { callback(it) })
     }
 
+    fun deleteChecked(listId: Int, callback: () -> Unit) {
+        val body = JSONObject(
+            mapOf(
+                "action" to "deleteCheckedItems",
+                "listId" to listId
+            )
+        )
+        queue.add(request(body, { it }, { callback() }))
+    }
+
+    fun deleteAll(listId: Int, callback: () -> Unit) {
+        val body = JSONObject(
+            mapOf(
+                "action" to "deleteAllItems",
+                "listId" to listId
+            )
+        )
+        queue.add(request(body, { it }, { callback() }))
+    }
+
     private fun <T> request(
         body: JSONObject,
         responseParser: (JSONObject) -> T,
@@ -75,15 +101,13 @@ object API {
             { callback(responseParser(it)) },
             { printError(it) }
         ) {
-            override fun getHeaders(): Map<String, String> = generateHeaders()
+            override fun getHeaders(): Map<String, String> {
+                val headers = HashMap<String, String>()
+                headers["Content-Type"] = "application/json"
+                headers["Authorization"] = "Bearer ${Token.getToken()}"
+                return headers
+            }
         }
-    }
-
-    private fun generateHeaders(): Map<String, String> {
-        val headers = HashMap<String, String>()
-        headers["Content-Type"] = "application/json"
-        headers["Authorization"] = "Bearer ${Token.getToken()}"
-        return headers
     }
 
     private fun printError(error: VolleyError) {

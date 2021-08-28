@@ -3,36 +3,83 @@ package com.ducksoup.snaplist
 import java.lang.IndexOutOfBoundsException
 
 object Store {
-    private val lists = mutableMapOf<Int, List>()
-    private val items = mutableMapOf<Int, kotlin.collections.List<Item>>()
+    val lists = mutableListOf(StoreList(0, "", listOf()))
+    var activeListPosition: Int = 0
 
-    fun setLists(lists: kotlin.collections.List<List>) {
-        this.lists.clear()
-        this.lists.putAll(lists.map { it.id to it })
+    fun setActiveList(position: Int, callback: () -> Unit = {}) {
+        if (position >= lists.size) throw IndexOutOfBoundsException()
+        activeListPosition = position
+        if (lists[activeListPosition].items == null) {
+            fetchItems { callback() }
+        } else {
+            callback()
+        }
     }
 
-    fun setItems(listId: Int, items: kotlin.collections.List<Item>) {
-        this.items[listId] = items
+    fun fetchLists(callback: () -> Unit) {
+        API.getLists { lists ->
+            if (lists.isNotEmpty()) {
+                this.lists.clear()
+                this.lists.addAll(lists)
+                activeListPosition = 0
+            }
+            callback()
+        }
     }
 
-    fun getItems(listId: Int):kotlin.collections.List<Item> {
-        return items[listId] ?: throw IndexOutOfBoundsException()
+    fun fetchItems(callback: (List<StoreListItem>) -> Unit) {
+        val listId = lists[activeListPosition].id
+        API.getItems(listId) { items ->
+            setItems(listId, items)
+            callback(items)
+        }
     }
 
-    fun setChecked(value: Boolean, listId: Int, itemId: Int, callback: () -> Unit) {
-        API.setChecked(value, itemId) {
-            println("SUCCESS CALLBACK $it")
-            items[listId]?.find { it.id == itemId }?.checked = value
+    private fun getListById(listId: Int): StoreList {
+        return this.lists.find { it.id == listId } ?: throw IndexOutOfBoundsException()
+    }
+
+    fun getList(position: Int): StoreList {
+        return lists[position]
+    }
+
+    fun setItems(listId: Int, items: List<StoreListItem>) {
+        getListById(listId).items = items
+    }
+
+    fun getItems(): List<StoreListItem> {
+        return lists[activeListPosition].items!!
+    }
+
+    fun toggleChecked(itemId: Int, callback: () -> Unit) {
+        val item = lists[activeListPosition].items?.find { it.id == itemId }
+            ?: throw IndexOutOfBoundsException()
+        API.setChecked(!item.checked, itemId) {
+            item.checked = !item.checked
             callback()
         }
 
+
     }
 
-    override fun toString(): String {
-        return lists.toString()
+    fun deleteAll(callback: () -> Unit) {
+        val list = lists[activeListPosition]
+        API.deleteAll(list.id) {
+            list.items = mutableListOf()
+            callback()
+        }
     }
 
-    data class List(val id: Int, val name: String)
-    data class Item(val id: Int, val label: String, var checked: Boolean)
+    fun deleteChecked(callback: () -> Unit) {
+        val list = lists[activeListPosition]
+        API.deleteChecked(list.id) {
+            val items = list.items?.filter { !it.checked } ?: throw IndexOutOfBoundsException()
+            list.items = items
+            callback()
+        }
+    }
 }
+
+data class StoreList(val id: Int, val name: String, var items: List<StoreListItem>? = null)
+data class StoreListItem(val id: Int, val label: String, var checked: Boolean)
 
