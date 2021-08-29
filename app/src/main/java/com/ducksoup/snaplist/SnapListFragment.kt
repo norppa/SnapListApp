@@ -2,11 +2,14 @@ package com.ducksoup.snaplist
 
 import android.os.Bundle
 import android.view.*
+import android.widget.EditText
+import android.widget.TextView
 import androidx.fragment.app.Fragment
 import androidx.navigation.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import androidx.viewpager2.widget.ViewPager2
+import com.google.android.material.floatingactionbutton.FloatingActionButton
 import com.google.android.material.tabs.TabLayout
 import com.google.android.material.tabs.TabLayoutMediator
 import kotlinx.coroutines.GlobalScope
@@ -78,6 +81,15 @@ class SnapListFragment : Fragment() {
                 tabLayout.addTab(tabLayout.newTab().setText(list.name).setId(list.id))
             }
             Store.fetchItems { refresh() }
+        }
+
+        val inputText = view.findViewById<EditText>(R.id.new_item_text)
+        view.findViewById<FloatingActionButton>(R.id.add_button).setOnClickListener {
+            Store.addItem(inputText.text.toString()) {
+                println("refresh")
+                refresh()
+                inputText.setText("")
+            }
         }
 
     }

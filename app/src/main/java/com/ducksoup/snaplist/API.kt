@@ -64,6 +64,11 @@ object API {
         queue.add(request(body, ::resultToList) { callback(it) })
     }
 
+    fun addItem(label: String, listId: Int, callback: (id: Int) -> Unit) {
+        val body = JSONObject(mapOf("action" to "addItem", "listId" to listId, "itemName" to label))
+        queue.add(request(body, { it.getInt("id") }, { callback(it) }))
+    }
+
     fun setChecked(value: Boolean, itemId: Int, callback: (jsonObject: JSONObject) -> Unit) {
         val body =
             JSONObject(mapOf("action" to "setItemCheck", "itemId" to itemId, "value" to value))
