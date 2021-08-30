@@ -5,18 +5,18 @@
     <group android:id="@+id/menu_group_1">
         <item
             android:id="@+id/menu_delete_checked"
-            android:title="Delete checked items" />
+            android:title="@string/menu_delete_checked" />
         <item
             android:id="@+id/menu_delete_all"
-            android:title="Delete all items" />
+            android:title="@string/menu_delete_all" />
     </group>
     <group android:id="@+id/menu_group_2">
         <item
             android:id="@+id/menu_add_list"
-            android:title="Add a new list" />
+            android:title="@string/menu_add_list" />
         <item
             android:id="@+id/menu_delete_list"
-            android:title="Delete list" />
+            android:title="@string/menu_delete_list" />
     </group>
     <group android:id="@+id/menu_group_3">
         <item

@@ -10,13 +10,13 @@ import android.view.inputmethod.InputMethodManager
 import android.widget.Button
 import android.widget.EditText
 import androidx.navigation.findNavController
+import com.google.android.material.textfield.TextInputEditText
 
 class LoginFragment : Fragment() {
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
-        // Inflate the layout for this fragment
         return inflater.inflate(R.layout.fragment_login, container, false)
     }
 
@@ -26,8 +26,8 @@ class LoginFragment : Fragment() {
     }
 
     private fun login(view: View) {
-        val username = view.findViewById<EditText>(R.id.username).text.toString()
-        val password = view.findViewById<EditText>(R.id.password).text.toString()
+        val username = view.findViewById<TextInputEditText>(R.id.input_username).text.toString()
+        val password = view.findViewById<TextInputEditText>(R.id.input_password).text.toString()
         fun callback(token: String) {
             Token.setToken(token, requireActivity())
             view.findNavController().navigate(R.id.snapListFragment)

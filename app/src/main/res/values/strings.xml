@@ -2,4 +2,14 @@
     <string name="app_name">SnapList</string>
     <!-- TODO: Remove or change this placeholder text -->
     <string name="hello_blank_fragment">Hello blank fragment</string>
+    <string name="menu_delete_checked">Delete checked items</string>
+    <string name="menu_delete_all">Delete all items</string>
+    <string name="menu_add_list">Add a new list</string>
+    <string name="menu_delete_list">Delete list</string>
+    <string name="hint_list_name">List Name</string>
+    <string name="hint_item_name">New item</string>
+    <string name="content_description_add_new_item_button">Add new item</string>
+    <string name="hint_new_item_label">new item label</string>
+    <string name="hint_username">Username</string>
+    <string name="hint_password">Password</string>
 </resources>
