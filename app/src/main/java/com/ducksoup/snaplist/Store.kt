@@ -1,15 +1,28 @@
 package com.ducksoup.snaplist
 
-import java.lang.IndexOutOfBoundsException
+import android.content.Context
+import android.content.SharedPreferences
+import androidx.appcompat.app.AppCompatActivity
 
 object Store {
+    private lateinit var prefs: SharedPreferences
     val lists = mutableListOf<StoreList>()
     private var activeListPosition: Int = 0
+    var username: String? = null
+    var token: String? = null
+
+    private const val sharedPrefsKey = "@SnapListSharedPreferences"
+    private const val tokenKey = "@SnapListToken"
+    private const val usernameKey = "@SnapListUsername"
+
+    fun init(context: Context) {
+        API.init(context)
+        prefs = context.getSharedPreferences(sharedPrefsKey, AppCompatActivity.MODE_PRIVATE)
+    }
 
     fun getActiveListPosition() = activeListPosition
 
     fun setActiveList(position: Int, callback: () -> Unit = {}) {
-        if (position >= lists.size) throw IndexOutOfBoundsException("Tried to set active list to $position, but only ${lists.size} lists available")
         activeListPosition = position
         if (lists[activeListPosition].items == null) {
             fetchItems { callback() }
@@ -37,12 +50,8 @@ object Store {
         }
     }
 
-    private fun getListById(listId: Int): StoreList {
-        return this.lists.find { it.id == listId } ?: throw IndexOutOfBoundsException()
-    }
-
     private fun setItems(listId: Int, items: List<StoreListItem>) {
-        getListById(listId).items = items.toMutableList()
+        lists.find { it.id == listId }?.items = items.toMutableList()
     }
 
     fun addItem(label: String, callback: () -> Unit) {
@@ -100,10 +109,40 @@ object Store {
         }
     }
 
-    fun clear() {
+    fun login(username: String, password: String, callback: () -> Unit) {
+        API.login(username, password) { token ->
+            this.token = token
+            this.username = username
+            val editor = prefs.edit()
+            editor.putString(tokenKey, token)
+            editor.putString(usernameKey, username)
+            editor.apply()
+            callback()
+        }
+    }
+
+    fun register(username: String, password: String, callback: () -> Unit) {
+        API.register(username, password) { token ->
+            this.token = token
+            this.username = username
+            val editor = prefs.edit()
+            editor.putString(tokenKey, token)
+            editor.putString(usernameKey, username)
+            editor.apply()
+            callback()
+        }
+    }
+
+    fun logout(callback: () -> Unit) {
+        token = null
+        username = null
         lists.clear()
         activeListPosition = 0
-
+        val editor = prefs.edit()
+        editor.remove(tokenKey)
+        editor.remove(usernameKey)
+        editor.apply()
+        callback()
     }
 }
 

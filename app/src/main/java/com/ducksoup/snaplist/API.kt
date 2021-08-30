@@ -1,5 +1,6 @@
 package com.ducksoup.snaplist
 
+import android.content.Context
 import android.view.View
 import com.android.volley.*
 import com.android.volley.toolbox.JsonObjectRequest
@@ -10,8 +11,8 @@ object API {
     private lateinit var queue: RequestQueue
     private const val url = "https://jtthaavi.kapsi.fi/subrosa/snaplist"
 
-    fun init(view: View) {
-        queue = Volley.newRequestQueue(view.context)
+    fun init(context: Context) {
+        queue = Volley.newRequestQueue(context)
     }
 
     fun login(username: String, password: String, callback: (token: String) -> Unit) {
@@ -114,7 +115,7 @@ object API {
             override fun getHeaders(): Map<String, String> {
                 val headers = HashMap<String, String>()
                 headers["Content-Type"] = "application/json"
-                headers["Authorization"] = "Bearer ${Token.getToken()}"
+                headers["Authorization"] = "Bearer ${Store.token}"
                 return headers
             }
         }

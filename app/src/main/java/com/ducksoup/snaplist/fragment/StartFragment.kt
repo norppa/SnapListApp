@@ -8,7 +8,6 @@ import androidx.fragment.app.Fragment
 import androidx.navigation.findNavController
 import com.ducksoup.snaplist.R
 import com.ducksoup.snaplist.Store
-import com.ducksoup.snaplist.Token
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.textfield.TextInputEditText
 
@@ -35,7 +34,7 @@ class StartFragment : Fragment() {
                 true
             }
             R.id.menu_logout -> {
-                logout()
+                Store.logout { view?.findNavController()?.navigate(R.id.loginFragment) }
                 true
             }
             else -> super.onOptionsItemSelected(item)
@@ -65,10 +64,5 @@ class StartFragment : Fragment() {
                 input.setText("")
             }
             .show()
-    }
-
-    private fun logout() {
-        Token.setToken(null, requireActivity())
-        view?.findNavController()?.navigate(R.id.loginFragment)
     }
 }

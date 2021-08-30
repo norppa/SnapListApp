@@ -11,7 +11,6 @@ import androidx.recyclerview.widget.RecyclerView
 import com.ducksoup.snaplist.ListAdapter
 import com.ducksoup.snaplist.R
 import com.ducksoup.snaplist.Store
-import com.ducksoup.snaplist.Token
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.floatingactionbutton.FloatingActionButton
 import com.google.android.material.tabs.TabLayout
@@ -69,7 +68,6 @@ class SnapListFragment : Fragment() {
             R.id.menu_delete_list -> {
                 val activeListPosition = Store.getActiveListPosition()
                 Store.deleteList {
-                    println("list Deleted")
                     if (Store.lists.isEmpty()) {
                         view?.findNavController()?.navigate(R.id.startFragment)
                     }
@@ -79,7 +77,7 @@ class SnapListFragment : Fragment() {
                 true
             }
             R.id.menu_logout -> {
-                logout(requireView())
+                Store.logout { view?.findNavController()?.navigate(R.id.loginFragment) }
                 true
             }
             else -> super.onOptionsItemSelected(item)
@@ -88,10 +86,8 @@ class SnapListFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        val token = Token.getToken(requireActivity())
-        if (token.isEmpty()) return view.findNavController().navigate(R.id.loginFragment)
-
-
+        if (Store.token.isNullOrEmpty()) return view.findNavController()
+            .navigate(R.id.loginFragment)
 
         activity?.title = "SnapList"
         tabLayout = view.findViewById(R.id.tab_layout)
@@ -133,11 +129,5 @@ class SnapListFragment : Fragment() {
 
     private fun refreshList() {
         recyclerView.adapter?.notifyDataSetChanged()
-    }
-
-    private fun logout(view: View) {
-        Token.setToken(null, requireActivity())
-        Store.clear()
-        view.findNavController().navigate(R.id.loginFragment)
     }
 }

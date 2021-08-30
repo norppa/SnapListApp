@@ -6,13 +6,11 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.Button
 import android.widget.TextView
-import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.core.widget.addTextChangedListener
 import androidx.fragment.app.Fragment
 import androidx.navigation.findNavController
-import com.ducksoup.snaplist.API
 import com.ducksoup.snaplist.R
-import com.ducksoup.snaplist.Token
+import com.ducksoup.snaplist.Store
 import com.google.android.material.textfield.TextInputEditText
 
 
@@ -48,8 +46,7 @@ class RegisterFragment : Fragment() {
         val password2 =
             view.findViewById<TextInputEditText>(R.id.register_input_password2).text.toString()
         if (password1 != password2) return showError("Passwords don't match")
-        API.register(username, password1) { token ->
-            Token.setToken(token, requireActivity())
+        Store.register(username, password1) {
             view.findNavController().navigate(R.id.snapListFragment)
         }
     }
