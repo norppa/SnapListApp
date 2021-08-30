@@ -6,8 +6,10 @@ object Store {
     val lists = mutableListOf(StoreList(0, "", mutableListOf()))
     private var activeListPosition: Int = 0
 
+    fun getActiveListPosition() = activeListPosition
+
     fun setActiveList(position: Int, callback: () -> Unit = {}) {
-        if (position >= lists.size) throw IndexOutOfBoundsException()
+        if (position >= lists.size) throw IndexOutOfBoundsException("Tried to set active list to $position, but only ${lists.size} lists available")
         activeListPosition = position
         if (lists[activeListPosition].items == null) {
             fetchItems { callback() }
@@ -77,6 +79,28 @@ object Store {
     fun deleteChecked(callback: () -> Unit) {
         API.deleteChecked(lists[activeListPosition].id) {
             lists[activeListPosition].items?.removeAll { it.checked }
+            callback()
+        }
+    }
+
+    fun createList(name: String, callback: (id: Int) -> Unit) {
+        API.createList(name) {
+            val list = StoreList(it, name, mutableListOf())
+            lists.add(list)
+            activeListPosition = lists.size - 1
+            callback(it)
+        }
+    }
+
+    fun deleteList(callback: () -> Unit) {
+        API.deleteList(lists[activeListPosition].id) {
+            lists.removeAt(activeListPosition)
+            activeListPosition = if (activeListPosition == 0) 0 else activeListPosition - 1
+
+            if (lists.isEmpty()) {
+                lists.add(StoreList(0, "", mutableListOf()))
+                activeListPosition = 0
+            }
             callback()
         }
     }

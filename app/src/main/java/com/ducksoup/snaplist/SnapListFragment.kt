@@ -3,18 +3,15 @@ package com.ducksoup.snaplist
 import android.os.Bundle
 import android.view.*
 import android.widget.EditText
-import android.widget.TextView
 import androidx.fragment.app.Fragment
 import androidx.navigation.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import androidx.viewpager2.widget.ViewPager2
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.floatingactionbutton.FloatingActionButton
 import com.google.android.material.tabs.TabLayout
-import com.google.android.material.tabs.TabLayoutMediator
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.async
-import kotlinx.coroutines.runBlocking
+import com.google.android.material.textfield.TextInputEditText
+import com.google.android.material.textfield.TextInputLayout
 
 class SnapListFragment : Fragment() {
 
@@ -38,12 +35,39 @@ class SnapListFragment : Fragment() {
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         return when (item.itemId) {
             R.id.menu_delete_checked -> {
-                Store.deleteChecked() { refresh() }
+                Store.deleteChecked() { refreshList() }
                 true
             }
-
             R.id.menu_delete_all -> {
-                Store.deleteAll { refresh() }
+                Store.deleteAll { refreshList() }
+                true
+            }
+            R.id.menu_add_list -> {
+                val ctx = requireContext()
+                val view = LayoutInflater.from(ctx).inflate(R.layout.add_list_dialog, null, false)
+                MaterialAlertDialogBuilder(ctx)
+                    .setView(view)
+                    .setNegativeButton("cancel") { _, _ ->
+                        view.findViewById<TextInputEditText>(R.id.input_list_name).setText("")
+                    }
+                    .setPositiveButton("add") { _, _ ->
+                        val input = view.findViewById<TextInputEditText>(R.id.input_list_name)
+                        val listName = input.text.toString()
+                        Store.createList(listName) {
+                            tabLayout.addTab(tabLayout.newTab().setText(listName).setId(it), true)
+                            Store.setActiveList(tabLayout.selectedTabPosition) { refreshList() }
+                        }
+                        input.setText("")
+                    }
+                    .show()
+                true
+            }
+            R.id.menu_delete_list -> {
+                val activeListPosition = Store.getActiveListPosition()
+                Store.deleteList {
+                    tabLayout.removeTabAt(activeListPosition)
+                    refreshList()
+                }
                 true
             }
             R.id.menu_logout -> {
@@ -60,13 +84,13 @@ class SnapListFragment : Fragment() {
         if (token.isEmpty())
             return view.findNavController().navigate(R.id.loginFragment)
 
-        tabLayout = view.findViewById<TabLayout>(R.id.tab_layout)
-        recyclerView = view.findViewById<RecyclerView>(R.id.list)
+        tabLayout = view.findViewById(R.id.tab_layout)
+        recyclerView = view.findViewById(R.id.list)
 
         tabLayout.addOnTabSelectedListener(object : TabLayout.OnTabSelectedListener {
             override fun onTabSelected(tab: TabLayout.Tab?) {
                 val activeListPosition = tab?.position ?: 0
-                Store.setActiveList(activeListPosition) { refresh() }
+                Store.setActiveList(activeListPosition) { refreshList() }
             }
 
             override fun onTabUnselected(tab: TabLayout.Tab?) {}
@@ -80,21 +104,20 @@ class SnapListFragment : Fragment() {
             Store.lists.forEach { list ->
                 tabLayout.addTab(tabLayout.newTab().setText(list.name).setId(list.id))
             }
-            Store.fetchItems { refresh() }
+            Store.fetchItems { refreshList() }
         }
 
         val inputText = view.findViewById<EditText>(R.id.new_item_text)
         view.findViewById<FloatingActionButton>(R.id.add_button).setOnClickListener {
             Store.addItem(inputText.text.toString()) {
-                println("refresh")
-                refresh()
+                refreshList()
                 inputText.setText("")
             }
         }
 
     }
 
-    private fun refresh() {
+    private fun refreshList() {
         recyclerView.adapter?.notifyDataSetChanged()
     }
 
