@@ -8,13 +8,25 @@
 
     <fragment
         android:id="@+id/loginFragment"
-        android:name="com.ducksoup.snaplist.LoginFragment"
+        android:name="com.ducksoup.snaplist.fragment.LoginFragment"
         android:label="fragment_login"
         tools:layout="@layout/fragment_login" />
 
     <fragment
+        android:id="@+id/registerFragment"
+        android:name="com.ducksoup.snaplist.fragment.RegisterFragment"
+        android:label="fragment_login"
+        tools:layout="@layout/fragment_register" />
+
+    <fragment
+        android:id="@+id/startFragment"
+        android:name="com.ducksoup.snaplist.fragment.StartFragment"
+        android:label="fragment_start"
+        tools:layout="@layout/fragment_start" />
+
+    <fragment
         android:id="@+id/snapListFragment"
-        android:name="com.ducksoup.snaplist.SnapListFragment"
+        android:name="com.ducksoup.snaplist.fragment.SnapListFragment"
         android:label="fragment_snap_list"
         tools:layout="@layout/fragment_snap_list" />
 </navigation>

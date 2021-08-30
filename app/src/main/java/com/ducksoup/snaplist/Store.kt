@@ -3,7 +3,7 @@ package com.ducksoup.snaplist
 import java.lang.IndexOutOfBoundsException
 
 object Store {
-    val lists = mutableListOf(StoreList(0, "", mutableListOf()))
+    val lists = mutableListOf<StoreList>()
     private var activeListPosition: Int = 0
 
     fun getActiveListPosition() = activeListPosition
@@ -54,7 +54,7 @@ object Store {
     }
 
     fun getItems(): List<StoreListItem> {
-        return lists[activeListPosition].items!!
+        return lists.getOrNull(activeListPosition)?.items ?: listOf()
     }
 
     fun toggleChecked(itemId: Int, callback: () -> Unit) {
@@ -96,16 +96,16 @@ object Store {
         API.deleteList(lists[activeListPosition].id) {
             lists.removeAt(activeListPosition)
             activeListPosition = if (activeListPosition == 0) 0 else activeListPosition - 1
-
-            if (lists.isEmpty()) {
-                lists.add(StoreList(0, "", mutableListOf()))
-                activeListPosition = 0
-            }
             callback()
         }
+    }
+
+    fun clear() {
+        lists.clear()
+        activeListPosition = 0
+
     }
 }
 
 data class StoreList(val id: Int, val name: String, var items: MutableList<StoreListItem>? = null)
 data class StoreListItem(val id: Int, val label: String, var checked: Boolean)
-

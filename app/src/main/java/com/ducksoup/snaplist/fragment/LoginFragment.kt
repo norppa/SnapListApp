@@ -1,4 +1,4 @@
-package com.ducksoup.snaplist
+package com.ducksoup.snaplist.fragment
 
 import android.content.Context
 import android.os.Bundle
@@ -8,8 +8,11 @@ import android.view.View
 import android.view.ViewGroup
 import android.view.inputmethod.InputMethodManager
 import android.widget.Button
-import android.widget.EditText
+import android.widget.TextView
 import androidx.navigation.findNavController
+import com.ducksoup.snaplist.API
+import com.ducksoup.snaplist.R
+import com.ducksoup.snaplist.Token
 import com.google.android.material.textfield.TextInputEditText
 
 class LoginFragment : Fragment() {
@@ -22,7 +25,11 @@ class LoginFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        activity?.title = "SnapList - Login"
         view.findViewById<Button>(R.id.login).setOnClickListener { login(view) }
+        view.findViewById<TextView>(R.id.to_register).setOnClickListener {
+            view.findNavController().navigate(R.id.registerFragment)
+        }
     }
 
     private fun login(view: View) {

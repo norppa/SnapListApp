@@ -1,4 +1,4 @@
-package com.ducksoup.snaplist
+package com.ducksoup.snaplist.fragment
 
 import android.os.Bundle
 import android.view.*
@@ -8,11 +8,14 @@ import androidx.fragment.app.Fragment
 import androidx.navigation.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.ducksoup.snaplist.ListAdapter
+import com.ducksoup.snaplist.R
+import com.ducksoup.snaplist.Store
+import com.ducksoup.snaplist.Token
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.floatingactionbutton.FloatingActionButton
 import com.google.android.material.tabs.TabLayout
 import com.google.android.material.textfield.TextInputEditText
-import com.google.android.material.textfield.TextInputLayout
 
 class SnapListFragment : Fragment() {
 
@@ -24,7 +27,6 @@ class SnapListFragment : Fragment() {
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
-
         setHasOptionsMenu(true)
         return inflater.inflate(R.layout.fragment_snap_list, container, false)
     }
@@ -67,6 +69,10 @@ class SnapListFragment : Fragment() {
             R.id.menu_delete_list -> {
                 val activeListPosition = Store.getActiveListPosition()
                 Store.deleteList {
+                    println("list Deleted")
+                    if (Store.lists.isEmpty()) {
+                        view?.findNavController()?.navigate(R.id.startFragment)
+                    }
                     tabLayout.removeTabAt(activeListPosition)
                     refreshList()
                 }
@@ -83,9 +89,11 @@ class SnapListFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         val token = Token.getToken(requireActivity())
-        if (token.isEmpty())
-            return view.findNavController().navigate(R.id.loginFragment)
+        if (token.isEmpty()) return view.findNavController().navigate(R.id.loginFragment)
 
+
+
+        activity?.title = "SnapList"
         tabLayout = view.findViewById(R.id.tab_layout)
         recyclerView = view.findViewById(R.id.list)
 
@@ -103,10 +111,14 @@ class SnapListFragment : Fragment() {
         recyclerView.adapter = ListAdapter()
 
         Store.fetchLists {
-            Store.lists.forEach { list ->
-                tabLayout.addTab(tabLayout.newTab().setText(list.name).setId(list.id))
+            if (Store.lists.isEmpty()) {
+                view.findNavController().navigate(R.id.startFragment)
+            } else {
+                Store.lists.forEach { list ->
+                    tabLayout.addTab(tabLayout.newTab().setText(list.name).setId(list.id))
+                }
+                Store.fetchItems { refreshList() }
             }
-            Store.fetchItems { refreshList() }
         }
 
         val inputText = view.findViewById<EditText>(R.id.new_item_text)
@@ -125,6 +137,7 @@ class SnapListFragment : Fragment() {
 
     private fun logout(view: View) {
         Token.setToken(null, requireActivity())
+        Store.clear()
         view.findNavController().navigate(R.id.loginFragment)
     }
 }

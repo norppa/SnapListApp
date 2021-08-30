@@ -12,4 +12,12 @@
     <string name="hint_new_item_label">new item label</string>
     <string name="hint_username">Username</string>
     <string name="hint_password">Password</string>
+    <string name="login">Login</string>
+    <string name="to_register">Don\'t have an account? Register!</string>
+    <string name="register_button">Register</string>
+    <string name="to_login">Already have an account? Log in!</string>
+    <string name="hint_register_username">Enter username</string>
+    <string name="hint_register_password">Enter password</string>
+    <string name="hint_registe_confirm_password">Confirm password</string>
+    <string name="start_info">You don\'t have any lists yet.</string>
 </resources>

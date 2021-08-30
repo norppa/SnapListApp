@@ -15,13 +15,23 @@ object API {
     }
 
     fun login(username: String, password: String, callback: (token: String) -> Unit) {
-        val body = JSONObject("""{"username":"$username", "password": "$password" }""")
-        val loginRequest = JsonObjectRequest(
-            Request.Method.POST, "$url/users/login", body,
+        queue.add(JsonObjectRequest(
+            Request.Method.POST,
+            "$url/users/login",
+            JSONObject(mapOf("username" to username, "password" to password)),
             { callback(it.getString("token")) },
             { printError(it) }
-        )
-        queue.add(loginRequest)
+        ))
+    }
+
+    fun register(username: String, password: String, callback: (token: String) -> Unit) {
+        queue.add(JsonObjectRequest(
+            Request.Method.POST,
+            "$url/users/register",
+            JSONObject(mapOf("username" to username, "password" to password)),
+            { callback(it.getString("token")) },
+            { printError(it) }
+        ))
     }
 
     fun getLists(callback: (lists: List<StoreList>) -> Unit) {
@@ -82,7 +92,7 @@ object API {
 
     fun createList(name: String, callback: (listId: Int) -> Unit) {
         val values = mapOf("action" to "createList", "listName" to name)
-        queue.add(request(values, {it.getInt("id")}, callback))
+        queue.add(request(values, { it.getInt("id") }, callback))
     }
 
     fun deleteList(listId: Int, callback: (Unit) -> Unit) {
