@@ -3,6 +3,7 @@ package com.ducksoup.snaplist
 import android.os.Bundle
 import android.view.*
 import android.widget.EditText
+import androidx.core.view.MenuCompat
 import androidx.fragment.app.Fragment
 import androidx.navigation.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -30,6 +31,7 @@ class SnapListFragment : Fragment() {
 
     override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
         inflater.inflate(R.menu.menu, menu)
+        MenuCompat.setGroupDividerEnabled(menu, true)
     }
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
