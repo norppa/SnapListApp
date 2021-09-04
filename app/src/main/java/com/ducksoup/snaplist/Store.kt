@@ -3,7 +3,6 @@ package com.ducksoup.snaplist
 import android.content.Context
 import android.content.SharedPreferences
 import androidx.appcompat.app.AppCompatActivity
-import com.android.volley.VolleyError
 
 object Store {
     private lateinit var prefs: SharedPreferences
@@ -112,7 +111,12 @@ object Store {
         }
     }
 
-    fun login(username: String, password: String, successCallback: () -> Unit, failureCallback: (String) -> Unit) {
+    fun login(
+        username: String,
+        password: String,
+        successCallback: () -> Unit,
+        failureCallback: (String) -> Unit
+    ) {
         val onSuccess = { token: String ->
             storeUserInfo(token, username)
             successCallback()
@@ -120,7 +124,12 @@ object Store {
         API.login(username, password, onSuccess, failureCallback)
     }
 
-    fun register(username: String, password: String, successCallback: () -> Unit, failureCallback: (String) -> Unit) {
+    fun register(
+        username: String,
+        password: String,
+        successCallback: () -> Unit,
+        failureCallback: (String) -> Unit
+    ) {
         val onSuccess = { token: String ->
             storeUserInfo(token, username)
             successCallback()
@@ -135,10 +144,21 @@ object Store {
         callback()
     }
 
-    fun changeUsername(newUsername: String, callback: () -> Unit) {
-        API.changeUsername(newUsername) {
-            storeUserInfo(it, newUsername)
-            callback()
+    fun changeUsername(
+        newUsername: String,
+        callback: (errorMessage: String?) -> Unit
+    ) {
+        API.changeUsername(newUsername) { success: Boolean, value: String ->
+            if (success) {
+                storeUserInfo(value, newUsername)
+                callback( null)
+            } else {
+                val errorMessage = when (value) {
+                    "USERNAME_TAKEN" -> "Username $newUsername has been taken, please choose another username."
+                    else -> value
+                }
+                callback( errorMessage)
+            }
         }
     }
 

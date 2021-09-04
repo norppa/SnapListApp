@@ -5,6 +5,7 @@ import com.android.volley.*
 import com.android.volley.toolbox.JsonObjectRequest
 import com.android.volley.toolbox.Volley
 import org.json.JSONObject
+import javax.xml.transform.ErrorListener
 
 object API {
     private lateinit var queue: RequestQueue
@@ -68,13 +69,16 @@ object API {
         ))
     }
 
-    fun changeUsername(newUsername: String, callback: (token: String) -> Unit) {
+    fun changeUsername(newUsername: String, callback: (success: Boolean, value: String) -> Unit) {
         queue.add(
-            request(
+            Req(
+                "$url/users/username",
                 mapOf("username" to newUsername),
-                { it.getString("token") },
-                callback,
-                "$url/users/username"
+                {
+                    println("success ${it}")
+                    callback(true, it.getString("token"))
+                },
+                { callback(false, JSONObject(String(it.networkResponse.data)).getString("error")) }
             )
         )
     }
@@ -191,5 +195,29 @@ object API {
         println("ERROR")
         println(error)
     }
+
+    private class Req : JsonObjectRequest {
+        constructor(
+            values: Map<String, Any>,
+            responseListener: Response.Listener<JSONObject>,
+            errorListener: Response.ErrorListener
+        ) : super(Method.POST, API.url, JSONObject(values), responseListener, errorListener)
+
+        constructor(
+            url: String,
+            values: Map<String, Any>,
+            responseListener: Response.Listener<JSONObject>,
+            errorListener: Response.ErrorListener
+        ) : super(Method.POST, url, JSONObject(values), responseListener, errorListener)
+
+        override fun getHeaders(): Map<String, String> {
+            val headers = HashMap<String, String>()
+            headers["Content-Type"] = "application/json"
+            headers["Authorization"] = "Bearer ${Store.token}"
+            return headers
+        }
+
+    }
+
 }
 
