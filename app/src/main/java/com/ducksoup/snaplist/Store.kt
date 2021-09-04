@@ -117,26 +117,15 @@ object Store {
             storeUserInfo(token, username)
             successCallback()
         }
-
-        val onFailure = { statusCode: Int ->
-            val errorMessage =  when (statusCode) {
-                401 -> "Incorrect username or password"
-                else -> "Network error ($statusCode)"
-            }
-            failureCallback(errorMessage)
-        }
-        API.login(username, password, onSuccess, onFailure)
+        API.login(username, password, onSuccess, failureCallback)
     }
 
-    fun register(username: String, password: String, callback: () -> Unit) {
+    fun register(username: String, password: String, successCallback: () -> Unit, failureCallback: (String) -> Unit) {
         val onSuccess = { token: String ->
             storeUserInfo(token, username)
-            callback()
+            successCallback()
         }
-        val onFailure = { error: VolleyError ->
-            println(error)
-        }
-        API.register(username, password, onSuccess)
+        API.register(username, password, onSuccess, failureCallback)
     }
 
     fun logout(callback: () -> Unit) {

@@ -14,27 +14,57 @@ object API {
         queue = Volley.newRequestQueue(context)
     }
 
-    fun login(username: String, password: String, callback: (token: String) -> Unit, errorHandler: (Int) -> Unit) {
-        queue.add(JsonObjectRequest(
-            Request.Method.POST,
-            "$url/users/login",
-            JSONObject(mapOf("username" to username, "password" to password)),
-            { callback(it.getString("token")) },
-            {
-                printError(it)
-                println(it.networkResponse.statusCode)
-                errorHandler(it.networkResponse.statusCode) }
-        ))
+    fun login(
+        username: String,
+        password: String,
+        onSuccess: (token: String) -> Unit,
+        onFailure: (message: String) -> Unit
+    ) {
+        val errorListener = { volleyError: VolleyError ->
+            val errorMessage = when (val statusCode = volleyError.networkResponse.statusCode) {
+                401 -> "Incorrect username or password"
+                else -> "Network error ($statusCode)"
+            }
+            onFailure(errorMessage)
+        }
+        queue.add(
+            JsonObjectRequest(
+                Request.Method.POST,
+                "$url/users/login",
+                JSONObject(mapOf("username" to username, "password" to password)),
+                { onSuccess(it.getString("token")) },
+                errorListener
+            )
+        )
     }
 
 
-    fun register(username: String, password: String, callback: (token: String) -> Unit) {
+    fun register(
+        username: String,
+        password: String,
+        onSuccess: (token: String) -> Unit,
+        onFailure: (message: String) -> Unit
+    ) {
         queue.add(JsonObjectRequest(
             Request.Method.POST,
             "$url/users/register",
             JSONObject(mapOf("username" to username, "password" to password)),
-            { callback(it.getString("token")) },
-            { printError(it) }
+            { onSuccess(it.getString("token")) },
+            {
+                val errorMessage = when (it.networkResponse.statusCode) {
+                    400 -> {
+                        val data = String(it.networkResponse.data, Charsets.UTF_8)
+                        if (JSONObject(String(it.networkResponse.data)).getString("error") == "Username taken") {
+                            "Username $username is taken, please choose another username."
+                        } else {
+                            "Bad request (400)"
+                        }
+                    }
+                    500 -> "Database error! Please try again later."
+                    else -> "An error that should not happen, happened :("
+                }
+                onFailure(errorMessage)
+            }
         ))
     }
 
