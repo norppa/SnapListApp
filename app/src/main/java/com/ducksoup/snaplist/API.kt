@@ -69,39 +69,41 @@ object API {
         ))
     }
 
+    private fun getErrorCode(networkResponse: NetworkResponse): String {
+        return JSONObject(String(networkResponse.data)).getString("error")
+    }
+
     fun changeUsername(newUsername: String, callback: (success: Boolean, value: String) -> Unit) {
         queue.add(
             Req(
                 "$url/users/username",
                 mapOf("username" to newUsername),
-                {
-                    println("success ${it}")
-                    callback(true, it.getString("token"))
-                },
-                { callback(false, JSONObject(String(it.networkResponse.data)).getString("error")) }
+                { callback(true, it.getString("token")) },
+                { callback(false, getErrorCode(it.networkResponse)) }
             )
         )
     }
 
-    fun changePassword(newPassword: String, callback: (token: String) -> Unit) {
+    fun changePassword(newPassword: String, callback: (success: Boolean, value: String) -> Unit) {
         queue.add(
-            request(
+            Req(
+                "$url/users/password",
                 mapOf("password" to newPassword),
-                { it.getString("token") },
-                callback,
-                "$url/users/password"
+                { callback(true, it.getString("token")) },
+                { callback(false, getErrorCode(it.networkResponse)) }
             )
         )
     }
 
-    fun deleteUser(callback: () -> Unit) {
-        queue.add(JsonObjectRequest(
-            Request.Method.POST,
-            "$url/users/delete",
-            JSONObject(),
-            { callback() },
-            { printError(it) }
-        ))
+    fun deleteAccount(callback: (success: Boolean, value: String) -> Unit) {
+        queue.add(
+            Req(
+                "$url/users/delete",
+                mapOf(),
+                { callback(true, "") },
+                { callback(false, getErrorCode(it.networkResponse)) }
+            )
+        )
     }
 
     fun getLists(callback: (lists: List<StoreList>) -> Unit) {

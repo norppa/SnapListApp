@@ -111,9 +111,13 @@ class SnapListFragment : Fragment() {
             if (Store.lists.isEmpty()) {
                 view.findNavController().navigate(R.id.startFragment)
             } else {
+                val position = Store.getActiveListPosition()
                 Store.lists.forEach { list ->
                     tabLayout.addTab(tabLayout.newTab().setText(list.name).setId(list.id))
                 }
+                Store.setActiveList(position)
+
+                tabLayout.getTabAt(Store.getActiveListPosition())?.select()
                 Store.fetchItems { refreshList() }
             }
         }

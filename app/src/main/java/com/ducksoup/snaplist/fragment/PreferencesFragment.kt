@@ -2,7 +2,6 @@ package com.ducksoup.snaplist.fragment
 
 import android.app.AlertDialog
 import android.content.Context
-import android.content.DialogInterface
 import android.os.Bundle
 import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
@@ -11,12 +10,14 @@ import android.view.ViewGroup
 import android.widget.EditText
 import android.widget.Toast
 import androidx.constraintlayout.widget.ConstraintLayout
+import androidx.navigation.NavController
 import androidx.navigation.findNavController
 import com.ducksoup.snaplist.R
 import com.ducksoup.snaplist.Store
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 
 class PreferencesFragment : Fragment() {
+    private lateinit var navController: NavController
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -27,7 +28,7 @@ class PreferencesFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         activity?.title = "SnapList - Preferences (${Store.username})"
-        val navController = view.findNavController()
+        navController = view.findNavController()
         view.findViewById<ConstraintLayout>(R.id.settings_logout).setOnClickListener {
             Store.logout { navController.navigate(R.id.loginFragment) }
         }
@@ -39,6 +40,26 @@ class PreferencesFragment : Fragment() {
         view.findViewById<ConstraintLayout>(R.id.settings_username).setOnClickListener {
             changeUsernameDialog(it.context)
         }
+
+        view.findViewById<ConstraintLayout>(R.id.settings_destroy)
+            .setOnClickListener { deleteAccountDialog(it.context) }
+    }
+
+    private fun deleteAccountDialog(context: Context) {
+        MaterialAlertDialogBuilder(context)
+            .setTitle("Delete account?")
+            .setMessage("Are you sure you want to delete your account and all the data associated with it? This action can not be undone.")
+            .setNegativeButton("Cancel", null)
+            .setPositiveButton("Delete account") { _,_ ->
+                Store.deleteAccount { errorMessage ->
+                    if (errorMessage.isNullOrEmpty()) {
+                        navController.navigate(R.id.loginFragment)
+                    } else {
+                        toast(errorMessage)
+                    }
+                }
+            }
+            .show()
     }
 
     private fun changePasswordDialog(context: Context) {
@@ -49,17 +70,21 @@ class PreferencesFragment : Fragment() {
             .setNegativeButton("cancel", null)
             .setPositiveButton("Change password", null)
             .create()
-            dialog.show()
-            dialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener {
-                val password1 = view.findViewById<EditText>(R.id.password_1).text.toString()
-                val password2 = view.findViewById<EditText>(R.id.password_2).text.toString()
-                if (password1 == password2) {
-                    Store.changePassword(password1) {
+        dialog.show()
+        dialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener {
+            val password1 = view.findViewById<EditText>(R.id.password_1).text.toString()
+            val password2 = view.findViewById<EditText>(R.id.password_2).text.toString()
+            if (password1 == password2) {
+                Store.changePassword(password1) { errorMessage ->
+                    if (errorMessage.isNullOrEmpty()) {
                         dialog.dismiss()
                         toast("Password changed successfully!")
+                    } else {
+                        toast(errorMessage)
                     }
                 }
             }
+        }
     }
 
     private fun changeUsernameDialog(context: Context) {

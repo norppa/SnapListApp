@@ -14,18 +14,21 @@ object Store {
     private const val sharedPrefsKey = "@SnapListSharedPreferences"
     private const val tokenKey = "@SnapListToken"
     private const val usernameKey = "@SnapListUsername"
+    private const val positionKey = "@SnapListPosition"
 
     fun init(context: Context) {
         API.init(context)
         prefs = context.getSharedPreferences(sharedPrefsKey, AppCompatActivity.MODE_PRIVATE)
         token = prefs.getString(tokenKey, null)
         username = prefs.getString(usernameKey, null)
+        activeListPosition = prefs.getInt(positionKey, 0)
     }
 
     fun getActiveListPosition() = activeListPosition
 
     fun setActiveList(position: Int, callback: () -> Unit = {}) {
         activeListPosition = position
+        storeActiveList(position)
         if (lists[activeListPosition].items == null) {
             fetchItems { callback() }
         } else {
@@ -38,7 +41,6 @@ object Store {
             if (lists.isNotEmpty()) {
                 this.lists.clear()
                 this.lists.addAll(lists)
-                activeListPosition = 0
             }
             callback()
         }
@@ -144,33 +146,43 @@ object Store {
         callback()
     }
 
-    fun changeUsername(
-        newUsername: String,
-        callback: (errorMessage: String?) -> Unit
-    ) {
+    fun changeUsername(newUsername: String, callback: (errorMessage: String?) -> Unit) {
         API.changeUsername(newUsername) { success: Boolean, value: String ->
             if (success) {
                 storeUserInfo(value, newUsername)
-                callback( null)
+                callback(null)
             } else {
                 val errorMessage = when (value) {
                     "USERNAME_TAKEN" -> "Username $newUsername has been taken, please choose another username."
                     else -> value
                 }
-                callback( errorMessage)
+                callback(errorMessage)
             }
         }
     }
 
-    fun changePassword(newPassword: String, callback: () -> Unit) {
-        API.changePassword(newPassword) {
-            storeUserInfo(it, username)
-            callback()
+    fun changePassword(newPassword: String, callback: (errorMessage: String?) -> Unit) {
+        API.changePassword(newPassword) { success: Boolean, value: String ->
+            if (success) {
+                storeUserInfo(value, username)
+                callback(null)
+            } else {
+                val errorMessage = when (value) {
+                    else -> value
+                }
+                callback(errorMessage)
+            }
         }
     }
 
-    fun deleteUser(callback: () -> Unit) {
-        API.deleteUser { logout { callback() } }
+    fun deleteAccount(callback: (errorMessage: String?) -> Unit) {
+        API.deleteAccount { success, value ->
+            if (success) {
+                logout { callback(null) }
+            } else {
+                callback(value)
+            }
+        }
     }
 
     private fun storeUserInfo(token: String?, username: String?) {
@@ -182,6 +194,12 @@ object Store {
             usernameKey,
             username
         )
+        editor.apply()
+    }
+
+    private fun storeActiveList(position: Int) {
+        val editor = prefs.edit()
+        editor.putInt(positionKey, position)
         editor.apply()
     }
 }
