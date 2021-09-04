@@ -29,4 +29,9 @@
         android:name="com.ducksoup.snaplist.fragment.SnapListFragment"
         android:label="fragment_snap_list"
         tools:layout="@layout/fragment_snap_list" />
+    <fragment
+        android:id="@+id/preferencesFragment"
+        android:name="com.ducksoup.snaplist.fragment.PreferencesFragment"
+        android:label="fragment_preferences"
+        tools:layout="@layout/fragment_preferences" />
 </navigation>

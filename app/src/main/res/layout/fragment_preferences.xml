@@ -1,0 +1,110 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".fragment.PreferencesFragment">
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/settings_logout"
+        android:layout_width="match_parent"
+        android:layout_height="64dp"
+        android:layout_marginTop="8dp"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent">
+
+        <ImageView
+            android:id="@+id/settings_logout_icon"
+            android:layout_width="64dp"
+            android:layout_height="64dp"
+            android:padding="8dp"
+            android:src="@drawable/icon_logout"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:tint="@color/blue_400" />
+
+        <TextView
+            android:id="@+id/settings_logout_text"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="32dp"
+            android:text="@string/settings_logout_text"
+            android:textSize="24sp"
+            android:textColor="@color/black"
+            app:layout_constraintStart_toEndOf="@+id/settings_logout_icon"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+
+
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/settings_username"
+        android:layout_width="match_parent"
+        android:layout_height="64dp"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/settings_logout">
+
+        <ImageView
+            android:id="@+id/settings_username_icon"
+            android:layout_width="64dp"
+            android:layout_height="64dp"
+            android:padding="8dp"
+            android:src="@drawable/icon_user"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:tint="@color/blue_400" />
+
+        <TextView
+            android:id="@+id/change_username_text"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="32dp"
+            android:text="@string/settings_username_text"
+            android:textSize="24sp"
+            android:textColor="@color/black"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toEndOf="@+id/settings_username_icon"
+            app:layout_constraintTop_toTopOf="parent" />
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/settings_password"
+        android:layout_width="match_parent"
+        android:layout_height="64dp"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/settings_username">
+
+        <ImageView
+            android:id="@+id/settings_password_icon"
+            android:layout_width="64dp"
+            android:layout_height="64dp"
+            android:padding="8dp"
+            android:src="@drawable/icon_lock"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:tint="@color/blue_400" />
+
+        <TextView
+            android:id="@+id/settings_password_text"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="32dp"
+            android:text="@string/settings_password_text"
+            android:textSize="24sp"
+            android:textColor="@color/black"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toEndOf="@+id/settings_password_icon"
+            app:layout_constraintTop_toTopOf="parent" />
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+
+</androidx.constraintlayout.widget.ConstraintLayout>

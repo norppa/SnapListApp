@@ -1,7 +1,6 @@
 package com.ducksoup.snaplist
 
 import android.content.Context
-import android.view.View
 import com.android.volley.*
 import com.android.volley.toolbox.JsonObjectRequest
 import com.android.volley.toolbox.Volley
@@ -31,6 +30,38 @@ object API {
             "$url/users/register",
             JSONObject(mapOf("username" to username, "password" to password)),
             { callback(it.getString("token")) },
+            { printError(it) }
+        ))
+    }
+
+    fun changeUsername(newUsername: String, callback: (token: String) -> Unit) {
+        queue.add(
+            request(
+                mapOf("username" to newUsername),
+                { it.getString("token") },
+                callback,
+                "$url/users/username"
+            )
+        )
+    }
+
+    fun changePassword(newPassword: String, callback: (token: String) -> Unit) {
+        queue.add(
+            request(
+                mapOf("password" to newPassword),
+                { it.getString("token") },
+                callback,
+                "$url/users/password"
+            )
+        )
+    }
+
+    fun deleteUser(callback: () -> Unit) {
+        queue.add(JsonObjectRequest(
+            Request.Method.POST,
+            "$url/users/delete",
+            JSONObject(),
+            { callback() },
             { printError(it) }
         ))
     }
@@ -104,7 +135,8 @@ object API {
     private fun <T> request(
         values: Map<String, Any>,
         responseParser: (JSONObject) -> T,
-        callback: (T) -> Unit
+        callback: (T) -> Unit,
+        url: String = this.url
     ): JsonObjectRequest {
         val body = JSONObject(values)
         return object : JsonObjectRequest(

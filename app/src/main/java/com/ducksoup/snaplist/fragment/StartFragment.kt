@@ -5,6 +5,7 @@ import android.view.*
 import android.widget.Button
 import androidx.core.view.MenuCompat
 import androidx.fragment.app.Fragment
+import androidx.navigation.NavController
 import androidx.navigation.findNavController
 import com.ducksoup.snaplist.R
 import com.ducksoup.snaplist.Store
@@ -12,6 +13,7 @@ import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.textfield.TextInputEditText
 
 class StartFragment : Fragment() {
+    private lateinit var navController: NavController
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -33,8 +35,8 @@ class StartFragment : Fragment() {
                 openAddListDialog()
                 true
             }
-            R.id.menu_logout -> {
-                Store.logout { view?.findNavController()?.navigate(R.id.loginFragment) }
+            R.id.menu_preferences -> {
+                navController.navigate(R.id.preferencesFragment)
                 true
             }
             else -> super.onOptionsItemSelected(item)
@@ -42,7 +44,8 @@ class StartFragment : Fragment() {
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        super.onViewCreated(view, savedInstanceState)
+        navController = view.findNavController()
+        activity?.title = "SnapList"
         view.findViewById<Button>(R.id.start_button).setOnClickListener { openAddListDialog() }
 
     }

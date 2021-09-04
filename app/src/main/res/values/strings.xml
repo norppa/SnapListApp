@@ -20,4 +20,11 @@
     <string name="hint_register_password">Enter password</string>
     <string name="hint_registe_confirm_password">Confirm password</string>
     <string name="start_info">You don\'t have any lists yet.</string>
+    <string name="menu_preferences">Preferences</string>
+    <string name="settings_password_text">Change password</string>
+    <string name="settings_username_text">Change username</string>
+    <string name="settings_logout_text">Log out</string>
+    <string name="enter_new_password">Enter new password</string>
+    <string name="confirm_new_password">Confirm new password</string>
+    <string name="change_password">Change password</string>
 </resources>

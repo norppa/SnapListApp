@@ -18,6 +18,8 @@ object Store {
     fun init(context: Context) {
         API.init(context)
         prefs = context.getSharedPreferences(sharedPrefsKey, AppCompatActivity.MODE_PRIVATE)
+        token = prefs.getString(tokenKey, null)
+        username = prefs.getString(usernameKey, null)
     }
 
     fun getActiveListPosition() = activeListPosition
@@ -111,38 +113,50 @@ object Store {
 
     fun login(username: String, password: String, callback: () -> Unit) {
         API.login(username, password) { token ->
-            this.token = token
-            this.username = username
-            val editor = prefs.edit()
-            editor.putString(tokenKey, token)
-            editor.putString(usernameKey, username)
-            editor.apply()
+            storeUserInfo(token, username)
             callback()
         }
     }
 
     fun register(username: String, password: String, callback: () -> Unit) {
         API.register(username, password) { token ->
-            this.token = token
-            this.username = username
-            val editor = prefs.edit()
-            editor.putString(tokenKey, token)
-            editor.putString(usernameKey, username)
-            editor.apply()
+            storeUserInfo(token, username)
             callback()
         }
     }
 
     fun logout(callback: () -> Unit) {
-        token = null
-        username = null
         lists.clear()
         activeListPosition = 0
-        val editor = prefs.edit()
-        editor.remove(tokenKey)
-        editor.remove(usernameKey)
-        editor.apply()
+        storeUserInfo(null, null)
         callback()
+    }
+
+    fun changeUsername(newUsername: String, callback: () -> Unit) {
+        API.changeUsername(newUsername) {
+            storeUserInfo(it, newUsername)
+            callback()
+        }
+    }
+
+    fun changePassword(newPassword: String, callback: () -> Unit) {
+        API.changePassword(newPassword) {
+            storeUserInfo(it, username)
+            callback()
+        }
+    }
+
+    fun deleteUser(callback: () -> Unit) {
+        API.deleteUser { logout { callback() } }
+    }
+
+    private fun storeUserInfo(token: String?, username: String?) {
+        this.token = token
+        this.username = username
+        val editor = prefs.edit()
+        if (token.isNullOrEmpty()) editor.remove(tokenKey) else editor.putString(tokenKey, token)
+        if (username.isNullOrEmpty()) editor.remove(usernameKey) else editor.putString(usernameKey, username)
+        editor.apply()
     }
 }
 

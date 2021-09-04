@@ -6,6 +6,7 @@ import android.widget.EditText
 import androidx.core.view.MenuCompat
 import androidx.fragment.app.Fragment
 import androidx.navigation.findNavController
+import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.ducksoup.snaplist.ListAdapter
@@ -38,7 +39,7 @@ class SnapListFragment : Fragment() {
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         return when (item.itemId) {
             R.id.menu_delete_checked -> {
-                Store.deleteChecked() { refreshList() }
+                Store.deleteChecked { refreshList() }
                 true
             }
             R.id.menu_delete_all -> {
@@ -76,8 +77,8 @@ class SnapListFragment : Fragment() {
                 }
                 true
             }
-            R.id.menu_logout -> {
-                Store.logout { view?.findNavController()?.navigate(R.id.loginFragment) }
+            R.id.menu_preferences -> {
+                this.findNavController().navigate(R.id.preferencesFragment)
                 true
             }
             else -> super.onOptionsItemSelected(item)
