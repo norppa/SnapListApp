@@ -3,6 +3,7 @@ package com.ducksoup.snaplist
 import android.content.Context
 import android.content.SharedPreferences
 import androidx.appcompat.app.AppCompatActivity
+import com.android.volley.VolleyError
 
 object Store {
     private lateinit var prefs: SharedPreferences
@@ -111,18 +112,31 @@ object Store {
         }
     }
 
-    fun login(username: String, password: String, callback: () -> Unit) {
-        API.login(username, password) { token ->
+    fun login(username: String, password: String, successCallback: () -> Unit, failureCallback: (String) -> Unit) {
+        val onSuccess = { token: String ->
             storeUserInfo(token, username)
-            callback()
+            successCallback()
         }
+
+        val onFailure = { statusCode: Int ->
+            val errorMessage =  when (statusCode) {
+                401 -> "Incorrect username or password"
+                else -> "Network error ($statusCode)"
+            }
+            failureCallback(errorMessage)
+        }
+        API.login(username, password, onSuccess, onFailure)
     }
 
     fun register(username: String, password: String, callback: () -> Unit) {
-        API.register(username, password) { token ->
+        val onSuccess = { token: String ->
             storeUserInfo(token, username)
             callback()
         }
+        val onFailure = { error: VolleyError ->
+            println(error)
+        }
+        API.register(username, password, onSuccess)
     }
 
     fun logout(callback: () -> Unit) {
@@ -155,7 +169,10 @@ object Store {
         this.username = username
         val editor = prefs.edit()
         if (token.isNullOrEmpty()) editor.remove(tokenKey) else editor.putString(tokenKey, token)
-        if (username.isNullOrEmpty()) editor.remove(usernameKey) else editor.putString(usernameKey, username)
+        if (username.isNullOrEmpty()) editor.remove(usernameKey) else editor.putString(
+            usernameKey,
+            username
+        )
         editor.apply()
     }
 }

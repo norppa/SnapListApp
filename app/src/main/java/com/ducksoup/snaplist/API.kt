@@ -14,15 +14,19 @@ object API {
         queue = Volley.newRequestQueue(context)
     }
 
-    fun login(username: String, password: String, callback: (token: String) -> Unit) {
+    fun login(username: String, password: String, callback: (token: String) -> Unit, errorHandler: (Int) -> Unit) {
         queue.add(JsonObjectRequest(
             Request.Method.POST,
             "$url/users/login",
             JSONObject(mapOf("username" to username, "password" to password)),
             { callback(it.getString("token")) },
-            { printError(it) }
+            {
+                printError(it)
+                println(it.networkResponse.statusCode)
+                errorHandler(it.networkResponse.statusCode) }
         ))
     }
+
 
     fun register(username: String, password: String, callback: (token: String) -> Unit) {
         queue.add(JsonObjectRequest(
