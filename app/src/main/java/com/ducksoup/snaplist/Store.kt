@@ -2,6 +2,7 @@ package com.ducksoup.snaplist
 
 import android.content.Context
 import android.content.SharedPreferences
+import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 
 object Store {
@@ -10,6 +11,7 @@ object Store {
     private var activeListPosition: Int = 0
     var username: String? = null
     var token: String? = null
+    private lateinit var toast: Toast
 
     private const val sharedPrefsKey = "@SnapListSharedPreferences"
     private const val tokenKey = "@SnapListToken"
@@ -22,6 +24,7 @@ object Store {
         token = prefs.getString(tokenKey, null)
         username = prefs.getString(usernameKey, null)
         activeListPosition = prefs.getInt(positionKey, 0)
+        toast = Toast.makeText(context, "", Toast.LENGTH_SHORT)
     }
 
     fun getActiveListPosition() = activeListPosition
@@ -41,6 +44,9 @@ object Store {
             if (lists.isNotEmpty()) {
                 this.lists.clear()
                 this.lists.addAll(lists)
+                if (activeListPosition >= this.lists.size) {
+                    activeListPosition = 0
+                }
             }
             callback()
         }
@@ -58,12 +64,13 @@ object Store {
         lists.find { it.id == listId }?.items = items.toMutableList()
     }
 
-    fun addItem(label: String, callback: () -> Unit) {
+    fun addItem(label: String, onSuccess: () -> Unit, onFailure: () -> Unit) {
         val listId = lists[activeListPosition].id
-        API.addItem(label, listId) {
+        API.addItem(label, listId, {
             lists[activeListPosition].items?.add(StoreListItem(it, label, false))
-            callback()
-        }
+                ?: throw Exception("Store.addItem empty items list")
+            onSuccess()
+        }, { onFailure() })
     }
 
     fun getItems(): List<StoreListItem> {

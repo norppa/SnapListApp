@@ -54,7 +54,6 @@ object API {
             {
                 val errorMessage = when (it.networkResponse.statusCode) {
                     400 -> {
-                        val data = String(it.networkResponse.data, Charsets.UTF_8)
                         if (JSONObject(String(it.networkResponse.data)).getString("error") == "Username taken") {
                             "Username $username is taken, please choose another username."
                         } else {
@@ -142,9 +141,12 @@ object API {
         queue.add(request(body, resultConverter, callback))
     }
 
-    fun addItem(label: String, listId: Int, callback: (id: Int) -> Unit) {
-        val body = mapOf("action" to "addItem", "listId" to listId, "itemName" to label)
-        queue.add(request(body, { it.getInt("id") }, callback))
+    fun addItem(label: String, listId: Int, onSuccess: (id: Int) -> Unit, onFailure: (errorCode: String) -> Unit) {
+        queue.add(Req(
+            mapOf("action" to "addItem", "listId" to listId, "itemName" to label),
+            { onSuccess(it.getInt("id")) },
+            { onFailure(getErrorCode(it.networkResponse)) }
+        ))
     }
 
     fun setChecked(value: Boolean, itemId: Int, callback: (jsonObject: JSONObject) -> Unit) {

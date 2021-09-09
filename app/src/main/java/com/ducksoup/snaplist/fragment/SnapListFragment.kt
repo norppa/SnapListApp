@@ -1,8 +1,10 @@
 package com.ducksoup.snaplist.fragment
 
+import android.app.Activity
+import android.app.ProgressDialog
 import android.os.Bundle
 import android.view.*
-import android.widget.EditText
+import android.widget.*
 import androidx.core.view.MenuCompat
 import androidx.fragment.app.Fragment
 import androidx.navigation.findNavController
@@ -22,13 +24,18 @@ class SnapListFragment : Fragment() {
     private lateinit var tabLayout: TabLayout
     private lateinit var recyclerView: RecyclerView
 
+    private lateinit var inputText: EditText
+    private lateinit var loadingPanel: RelativeLayout
+    private lateinit var addButton: FloatingActionButton
+
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
         setHasOptionsMenu(true)
-        return inflater.inflate(R.layout.fragment_snap_list, container, false)
+        val view = inflater.inflate(R.layout.fragment_snap_list, container, false)
+        return view
     }
 
     override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
@@ -93,6 +100,9 @@ class SnapListFragment : Fragment() {
         activity?.title = "SnapList"
         tabLayout = view.findViewById(R.id.tab_layout)
         recyclerView = view.findViewById(R.id.list)
+        inputText = view.findViewById(R.id.new_item_text)
+        loadingPanel = view.findViewById(R.id.loadingPanel)
+        addButton = view.findViewById(R.id.add_button)
 
         tabLayout.addOnTabSelectedListener(object : TabLayout.OnTabSelectedListener {
             override fun onTabSelected(tab: TabLayout.Tab?) {
@@ -122,14 +132,42 @@ class SnapListFragment : Fragment() {
             }
         }
 
-        val inputText = view.findViewById<EditText>(R.id.new_item_text)
-        view.findViewById<FloatingActionButton>(R.id.add_button).setOnClickListener {
-            Store.addItem(inputText.text.toString()) {
-                refreshList()
-                inputText.setText("")
+        addButton.setOnClickListener {
+            val itemText = inputText.text.toString()
+            if (itemText.isEmpty()) {
+                Toast.makeText(context, "Enter an item to add", Toast.LENGTH_SHORT).show()
+            } else {
+                setBusy(true)
+                Store.addItem(
+                    itemText,
+                    {
+                        refreshList()
+                        inputText.setText("")
+                        setBusy(false)
+                    },
+                    {
+                        Toast.makeText(context, "Error contacting server", Toast.LENGTH_LONG).show()
+                        setBusy(false)
+                    }
+                )
             }
         }
 
+        inputText.requestFocus()
+
+    }
+
+    private fun setBusy(isBusy: Boolean) {
+        if (isBusy) {
+            loadingPanel.visibility = View.VISIBLE
+            inputText.visibility = View.INVISIBLE
+            addButton.isEnabled = false
+        } else {
+            loadingPanel.visibility = View.INVISIBLE
+            inputText.visibility = View.VISIBLE
+            inputText.requestFocus()
+            addButton.isEnabled = true
+        }
     }
 
     private fun refreshList() {
