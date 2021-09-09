@@ -32,6 +32,7 @@
         android:ems="10"
         android:inputType="text"
         android:hint="@string/hint_item_name"
+        android:enabled="false"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toStartOf="@id/add_button"
         app:layout_constraintStart_toStartOf="parent"

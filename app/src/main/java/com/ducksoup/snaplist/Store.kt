@@ -2,7 +2,6 @@ package com.ducksoup.snaplist
 
 import android.content.Context
 import android.content.SharedPreferences
-import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 
 object Store {
@@ -11,7 +10,6 @@ object Store {
     private var activeListPosition: Int = 0
     var username: String? = null
     var token: String? = null
-    private lateinit var toast: Toast
 
     private const val sharedPrefsKey = "@SnapListSharedPreferences"
     private const val tokenKey = "@SnapListToken"
@@ -24,53 +22,68 @@ object Store {
         token = prefs.getString(tokenKey, null)
         username = prefs.getString(usernameKey, null)
         activeListPosition = prefs.getInt(positionKey, 0)
-        toast = Toast.makeText(context, "", Toast.LENGTH_SHORT)
+    }
+
+    fun open(callback: (Reply) -> Unit) {
+        API.getLists { response ->
+            when (response) {
+                is API.Reply.Success -> {
+                    val lists: List<StoreList> = response.value as List<StoreList>
+                    if (lists.isNotEmpty()) {
+                        this.lists.clear()
+                        this.lists.addAll(lists)
+                    }
+                    if (activeListPosition >= this.lists.size) {
+                        activeListPosition = 0
+                    }
+
+                    setActiveList(activeListPosition) { callback(it) }
+                }
+                is API.Reply.Failure -> {
+                    callback(Reply.Failure("Failed getting lists"))
+                }
+
+            }
+        }
     }
 
     fun getActiveListPosition() = activeListPosition
 
-    fun setActiveList(position: Int, callback: () -> Unit = {}) {
+    fun setActiveList(position: Int, callback: (Reply) -> Unit) {
         activeListPosition = position
         storeActiveList(position)
-        if (lists[activeListPosition].items == null) {
-            fetchItems { callback() }
-        } else {
-            callback()
-        }
-    }
-
-    fun fetchLists(callback: () -> Unit) {
-        API.getLists { lists ->
-            if (lists.isNotEmpty()) {
-                this.lists.clear()
-                this.lists.addAll(lists)
-                if (activeListPosition >= this.lists.size) {
-                    activeListPosition = 0
+        val listId = lists[activeListPosition].id
+        API.getItems(listId) { response ->
+            when (response) {
+                is API.Reply.Success -> {
+                    val items: List<StoreListItem> = response.value as List<StoreListItem>
+                    lists.find { it.id == listId }?.items = items.toMutableList()
+                    callback(Reply.Success)
+                }
+                is API.Reply.Failure -> {
+                    callback(Reply.Failure("Failed getting items"))
                 }
             }
-            callback()
+
         }
     }
 
-    fun fetchItems(callback: (List<StoreListItem>) -> Unit) {
+
+    fun addItem(label: String, callback: (Reply) -> Unit) {
         val listId = lists[activeListPosition].id
-        API.getItems(listId) { items ->
-            setItems(listId, items)
-            callback(items)
+        API.addItem(label, listId) {reply ->
+            when (reply) {
+                is API.Reply.Success -> {
+                    val id: Int = reply.value as Int
+                    lists[activeListPosition].items?.add(StoreListItem(id, label, false))
+                        ?: throw Exception("Store.addItem empty items list")
+                    callback(Reply.Success)
+                }
+                is API.Reply.Failure -> {
+                    callback(Reply.Failure("Failed to add item"))
+                }
+            }
         }
-    }
-
-    private fun setItems(listId: Int, items: List<StoreListItem>) {
-        lists.find { it.id == listId }?.items = items.toMutableList()
-    }
-
-    fun addItem(label: String, onSuccess: () -> Unit, onFailure: () -> Unit) {
-        val listId = lists[activeListPosition].id
-        API.addItem(label, listId, {
-            lists[activeListPosition].items?.add(StoreListItem(it, label, false))
-                ?: throw Exception("Store.addItem empty items list")
-            onSuccess()
-        }, { onFailure() })
     }
 
     fun getItems(): List<StoreListItem> {
@@ -209,7 +222,14 @@ object Store {
         editor.putInt(positionKey, position)
         editor.apply()
     }
+
+    sealed class Reply {
+        object Success : Reply()
+        data class Failure(val errorMessage: String) : Reply()
+
+    }
 }
 
 data class StoreList(val id: Int, val name: String, var items: MutableList<StoreListItem>? = null)
 data class StoreListItem(val id: Int, val label: String, var checked: Boolean)
+

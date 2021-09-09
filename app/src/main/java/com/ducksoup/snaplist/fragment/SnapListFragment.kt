@@ -117,47 +117,55 @@ class SnapListFragment : Fragment() {
         recyclerView.layoutManager = LinearLayoutManager(context)
         recyclerView.adapter = ListAdapter()
 
-        Store.fetchLists {
-            if (Store.lists.isEmpty()) {
-                view.findNavController().navigate(R.id.startFragment)
-            } else {
-                val position = Store.getActiveListPosition()
-                Store.lists.forEach { list ->
-                    tabLayout.addTab(tabLayout.newTab().setText(list.name).setId(list.id))
+        Store.open openingProcedure@{ reply ->
+            when (reply) {
+                is Store.Reply.Success -> {
+                    if (Store.lists.isEmpty()) {
+                        view.findNavController().navigate(R.id.startFragment)
+                        return@openingProcedure
+                    }
+                    Store.lists.forEach { list ->
+                        tabLayout.addTab(tabLayout.newTab().setText(list.name).setId(list.id))
+                    }
+                    tabLayout.getTabAt(Store.getActiveListPosition())?.select()
+                    refreshList()
+
+                    addButton.setOnClickListener(::addItem)
+                    inputText.isEnabled = true
+                    inputText.requestFocus()
                 }
-                Store.setActiveList(position)
+                is Store.Reply.Failure -> {
 
-                tabLayout.getTabAt(Store.getActiveListPosition())?.select()
-                Store.fetchItems { refreshList() }
+                }
             }
-        }
 
-        addButton.setOnClickListener {
-            val itemText = inputText.text.toString()
-            if (itemText.isEmpty()) {
-                Toast.makeText(context, "Enter an item to add", Toast.LENGTH_SHORT).show()
-            } else {
-                setBusy(true)
-                Store.addItem(
-                    itemText,
-                    {
+        }
+    }
+
+    private fun addItem(view: View) {
+        val itemText = inputText.text.toString()
+        if (itemText.isEmpty()) {
+            Toast.makeText(context, "Enter an item to add", Toast.LENGTH_SHORT).show()
+        } else {
+            setBusy(true)
+            Store.addItem(itemText) {reply ->
+                when (reply) {
+                    is Store.Reply.Success -> {
                         refreshList()
                         inputText.setText("")
                         setBusy(false)
-                    },
-                    {
-                        Toast.makeText(context, "Error contacting server", Toast.LENGTH_LONG).show()
+                    }
+                    is Store.Reply.Failure -> {
+                        Toast.makeText(context, reply.errorMessage, Toast.LENGTH_LONG).show()
                         setBusy(false)
                     }
-                )
+                }
             }
         }
-
-        inputText.requestFocus()
-
     }
 
     private fun setBusy(isBusy: Boolean) {
+        // TIMEOUT NEEDED
         if (isBusy) {
             loadingPanel.visibility = View.VISIBLE
             inputText.visibility = View.INVISIBLE

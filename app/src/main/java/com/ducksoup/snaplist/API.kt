@@ -5,7 +5,6 @@ import com.android.volley.*
 import com.android.volley.toolbox.JsonObjectRequest
 import com.android.volley.toolbox.Volley
 import org.json.JSONObject
-import javax.xml.transform.ErrorListener
 
 object API {
     private lateinit var queue: RequestQueue
@@ -105,8 +104,7 @@ object API {
         )
     }
 
-    fun getLists(callback: (lists: List<StoreList>) -> Unit) {
-        val body = mapOf("action" to "getLists")
+    fun getLists(callback: (Reply) -> Unit) {
         val resultConverter = { jsonObject: JSONObject ->
             val jsonArray = jsonObject.getJSONArray("lists")
             val lists = mutableListOf<StoreList>()
@@ -117,36 +115,18 @@ object API {
             }
             lists
         }
-        queue.add(request(body, resultConverter, callback))
+
+        queue.add(Req(mapOf("action" to "getLists"), resultConverter, callback))
     }
 
-    fun getItems(listId: Int, callback: (lists: List<StoreListItem>) -> Unit) {
+    fun getItems(listId: Int, callback: (Reply) -> Unit) {
         val body = mapOf("action" to "getItems", "listId" to listId)
-        val resultConverter = { jsonObject: JSONObject ->
-            val jsonArray = jsonObject.getJSONArray("items")
-            val items = mutableListOf<StoreListItem>()
-            for (i in 0 until jsonArray.length()) {
-                val o = jsonArray.getJSONObject(i)
-                items.add(
-                    StoreListItem(
-                        o.getInt("id"),
-                        o.getString("item"),
-                        o.getInt("checked") != 0
-                    )
-                )
-            }
-            items
-        }
-
-        queue.add(request(body, resultConverter, callback))
+        queue.add(Req(body, ::jsonToItems, callback))
     }
 
-    fun addItem(label: String, listId: Int, onSuccess: (id: Int) -> Unit, onFailure: (errorCode: String) -> Unit) {
-        queue.add(Req(
-            mapOf("action" to "addItem", "listId" to listId, "itemName" to label),
-            { onSuccess(it.getInt("id")) },
-            { onFailure(getErrorCode(it.networkResponse)) }
-        ))
+    fun addItem(label: String, listId: Int, callback: (Reply) -> Unit) {
+        val body = mapOf("action" to "addItem", "listId" to listId, "itemName" to label)
+        queue.add(Req(body, { it.getInt("id") }, callback))
     }
 
     fun setChecked(value: Boolean, itemId: Int, callback: (jsonObject: JSONObject) -> Unit) {
@@ -172,6 +152,22 @@ object API {
     fun deleteList(listId: Int, callback: (Unit) -> Unit) {
         val values = mapOf("action" to "deleteList", "listId" to listId)
         queue.add(request(values, {}, callback))
+    }
+
+    private fun jsonToItems(jsonObject: JSONObject): List<StoreListItem> {
+        val jsonArray = jsonObject.getJSONArray("items")
+        val items = mutableListOf<StoreListItem>()
+        for (i in 0 until jsonArray.length()) {
+            val o = jsonArray.getJSONObject(i)
+            items.add(
+                StoreListItem(
+                    o.getInt("id"),
+                    o.getString("item"),
+                    o.getInt("checked") != 0
+                )
+            )
+        }
+        return items
     }
 
     private fun <T> request(
@@ -203,6 +199,19 @@ object API {
     private class Req : JsonObjectRequest {
         constructor(
             values: Map<String, Any>,
+            jsonConverter: (JSONObject) -> Any,
+            callback: (Reply) -> Unit
+        ) : super(
+            Method.POST,
+            API.url,
+            JSONObject(values),
+            { callback(Reply.Success(jsonConverter(it))) },
+            { callback(Reply.Failure(getErrorCode(it.networkResponse))) }
+        )
+
+
+        constructor(
+            values: Map<String, Any>,
             responseListener: Response.Listener<JSONObject>,
             errorListener: Response.ErrorListener
         ) : super(Method.POST, API.url, JSONObject(values), responseListener, errorListener)
@@ -214,14 +223,20 @@ object API {
             errorListener: Response.ErrorListener
         ) : super(Method.POST, url, JSONObject(values), responseListener, errorListener)
 
+
         override fun getHeaders(): Map<String, String> {
             val headers = HashMap<String, String>()
             headers["Content-Type"] = "application/json"
             headers["Authorization"] = "Bearer ${Store.token}"
             return headers
         }
-
     }
+
+    sealed class Reply {
+        data class Success(val value: Any) : Reply()
+        data class Failure(val errorMessage: String) : Reply()
+    }
+
 
 }
 
