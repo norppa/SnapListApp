@@ -1,7 +1,5 @@
 package com.ducksoup.snaplist.fragment
 
-import android.app.Activity
-import android.app.ProgressDialog
 import android.os.Bundle
 import android.view.*
 import android.widget.*
@@ -34,8 +32,7 @@ class SnapListFragment : Fragment() {
         savedInstanceState: Bundle?
     ): View? {
         setHasOptionsMenu(true)
-        val view = inflater.inflate(R.layout.fragment_snap_list, container, false)
-        return view
+        return inflater.inflate(R.layout.fragment_snap_list, container, false)
     }
 
     override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
@@ -165,7 +162,6 @@ class SnapListFragment : Fragment() {
     }
 
     private fun setBusy(isBusy: Boolean) {
-        // TIMEOUT NEEDED
         if (isBusy) {
             loadingPanel.visibility = View.VISIBLE
             inputText.visibility = View.INVISIBLE

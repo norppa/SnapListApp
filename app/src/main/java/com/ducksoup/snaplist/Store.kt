@@ -7,7 +7,7 @@ import androidx.appcompat.app.AppCompatActivity
 object Store {
     private lateinit var prefs: SharedPreferences
     val lists = mutableListOf<StoreList>()
-    private var activeListPosition: Int = 0
+    private var activeListPosition: Int = -1
     var username: String? = null
     var token: String? = null
 
@@ -29,15 +29,17 @@ object Store {
             when (response) {
                 is API.Reply.Success -> {
                     val lists: List<StoreList> = response.value as List<StoreList>
+                    this.lists.clear()
                     if (lists.isNotEmpty()) {
-                        this.lists.clear()
                         this.lists.addAll(lists)
-                    }
-                    if (activeListPosition >= this.lists.size) {
-                        activeListPosition = 0
-                    }
+                        if (activeListPosition >= this.lists.size) {
+                            activeListPosition = 0
+                        }
 
-                    setActiveList(activeListPosition) { callback(it) }
+                        setActiveList(activeListPosition) { callback(it) }
+                    } else {
+                        callback(Reply.Success)
+                    }
                 }
                 is API.Reply.Failure -> {
                     callback(Reply.Failure("Failed getting lists"))
@@ -71,7 +73,7 @@ object Store {
 
     fun addItem(label: String, callback: (Reply) -> Unit) {
         val listId = lists[activeListPosition].id
-        API.addItem(label, listId) {reply ->
+        API.addItem(label, listId) { reply ->
             when (reply) {
                 is API.Reply.Success -> {
                     val id: Int = reply.value as Int

@@ -1,6 +1,7 @@
 package com.ducksoup.snaplist
 
 import android.graphics.Color
+import android.graphics.Paint
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -20,13 +21,22 @@ class ListAdapter : RecyclerView.Adapter<ListAdapter.ViewHolder>() {
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
         val item = Store.getItems()[position]
         holder.label.text = item.label
-        val textColor = if (item.checked) "#606060" else "#000000"
-        holder.label.setTextColor(Color.parseColor(textColor))
-
+        setChecked(holder.label, item.checked)
         holder.label.setOnClickListener {
             Store.toggleChecked(item.id) {
                 this.notifyDataSetChanged()
             }
+        }
+    }
+
+    private fun setChecked(textView: TextView, isChecked: Boolean) {
+        if (isChecked) {
+            textView.setTextColor(Color.parseColor("#606060"))
+            textView.paintFlags = textView.paintFlags or Paint.STRIKE_THRU_TEXT_FLAG
+        } else {
+            textView.setTextColor(Color.parseColor("#000000"))
+            textView.paintFlags = textView.paintFlags and Paint.STRIKE_THRU_TEXT_FLAG.inv()
+
         }
     }
 
