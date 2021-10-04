@@ -2,7 +2,9 @@ package com.ducksoup.snaplist
 
 import android.content.Context
 import android.content.SharedPreferences
+import android.util.Log
 import androidx.appcompat.app.AppCompatActivity
+import com.ducksoup.snaplist.API.Reply
 
 object Store {
     private lateinit var prefs: SharedPreferences
@@ -16,18 +18,22 @@ object Store {
     private const val usernameKey = "@SnapListUsername"
     private const val positionKey = "@SnapListPosition"
 
+    enum class Actions { ToggleChecked, AddItem }
+
     fun init(context: Context) {
         API.init(context)
         prefs = context.getSharedPreferences(sharedPrefsKey, AppCompatActivity.MODE_PRIVATE)
         token = prefs.getString(tokenKey, null)
         username = prefs.getString(usernameKey, null)
         activeListPosition = prefs.getInt(positionKey, 0)
+        Log.i("DEBUG", "active list position $activeListPosition")
     }
 
     fun open(callback: (Reply) -> Unit) {
         API.getLists { response ->
             when (response) {
-                is API.Reply.Success -> {
+                is Reply.Success -> {
+                    @Suppress("UNCHECKED_CAST")
                     val lists: List<StoreList> = response.value as List<StoreList>
                     this.lists.clear()
                     if (lists.isNotEmpty()) {
@@ -38,10 +44,10 @@ object Store {
 
                         setActiveList(activeListPosition) { callback(it) }
                     } else {
-                        callback(Reply.Success)
+                        callback(response)
                     }
                 }
-                is API.Reply.Failure -> {
+                is Reply.Failure -> {
                     callback(Reply.Failure("Failed getting lists"))
                 }
 
@@ -57,16 +63,16 @@ object Store {
         val listId = lists[activeListPosition].id
         API.getItems(listId) { response ->
             when (response) {
-                is API.Reply.Success -> {
+                is Reply.Success -> {
+                    @Suppress("UNCHECKED_CAST")
                     val items: List<StoreListItem> = response.value as List<StoreListItem>
-                    lists.find { it.id == listId }?.items = items.toMutableList()
-                    callback(Reply.Success)
+                    lists.find { it.id == listId }?.items = items.sortedBy { it.checked }.toMutableList()
+                    callback(response)
                 }
-                is API.Reply.Failure -> {
+                is Reply.Failure -> {
                     callback(Reply.Failure("Failed getting items"))
                 }
             }
-
         }
     }
 
@@ -75,13 +81,13 @@ object Store {
         val listId = lists[activeListPosition].id
         API.addItem(label, listId) { reply ->
             when (reply) {
-                is API.Reply.Success -> {
+                is Reply.Success -> {
                     val id: Int = reply.value as Int
-                    lists[activeListPosition].items?.add(StoreListItem(id, label, false))
+                    lists[activeListPosition].items?.add(0, StoreListItem(id, label, false))
                         ?: throw Exception("Store.addItem empty items list")
-                    callback(Reply.Success)
+                    callback(reply)
                 }
-                is API.Reply.Failure -> {
+                is Reply.Failure -> {
                     callback(Reply.Failure("Failed to add item"))
                 }
             }
@@ -92,12 +98,21 @@ object Store {
         return lists.getOrNull(activeListPosition)?.items ?: listOf()
     }
 
-    fun toggleChecked(itemId: Int, callback: () -> Unit) {
+    fun toggleChecked(itemId: Int, callback: (Reply) -> Unit) {
         val item = lists[activeListPosition].items?.find { it.id == itemId }
             ?: throw IndexOutOfBoundsException()
-        API.setChecked(!item.checked, itemId) {
-            item.checked = !item.checked
-            callback()
+        API.setChecked(!item.checked, itemId) {reply ->
+            when (reply) {
+                is Reply.Success -> {
+                    item.checked = !item.checked
+                    lists[activeListPosition].items?.sortBy { it.checked }
+                    callback(reply)
+                }
+                is Reply.Failure -> {
+                    callback(Reply.Failure("Failed to set item check status"))
+                }
+            }
+
         }
 
 
@@ -225,11 +240,12 @@ object Store {
         editor.apply()
     }
 
-    sealed class Reply {
-        object Success : Reply()
-        data class Failure(val errorMessage: String) : Reply()
+//    sealed class Reply {
+//        object Success : Reply()
+//        data class Failure(val errorMessage: String) : Reply()
+//
+//    }
 
-    }
 }
 
 data class StoreList(val id: Int, val name: String, var items: MutableList<StoreListItem>? = null)

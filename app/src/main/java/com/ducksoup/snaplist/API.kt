@@ -129,9 +129,9 @@ object API {
         queue.add(Req(body, { it.getInt("id") }, callback))
     }
 
-    fun setChecked(value: Boolean, itemId: Int, callback: (jsonObject: JSONObject) -> Unit) {
+    fun setChecked(value: Boolean, itemId: Int, callback: (Reply) -> Unit) {
         val body = mapOf("action" to "setItemCheck", "itemId" to itemId, "value" to value)
-        queue.add(request(body, { it }, callback))
+        queue.add(Req(body, {}, callback))
     }
 
     fun deleteChecked(listId: Int, callback: (Unit) -> Unit) {
@@ -208,13 +208,6 @@ object API {
             { callback(Reply.Success(jsonConverter(it))) },
             { callback(Reply.Failure(getErrorCode(it.networkResponse))) }
         )
-
-
-        constructor(
-            values: Map<String, Any>,
-            responseListener: Response.Listener<JSONObject>,
-            errorListener: Response.ErrorListener
-        ) : super(Method.POST, API.url, JSONObject(values), responseListener, errorListener)
 
         constructor(
             url: String,
